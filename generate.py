@@ -22,10 +22,12 @@ def packageName(fontname,description):
     return pkgstr
 
 def packageRequirements(requirements):
-    reqstr = ""
+    reqstr = "\\RequirePackage{fontspec}"
     if not isinstance(requirements, list):
         return reqstr
     for pkg in requirements:
+        if pkg == "fontspec":
+            continue
         reqstr += "\\RequirePackage{"+pkg+"}"
     return reqstr
 
@@ -52,13 +54,38 @@ def initCommands(defCommand, command, cmdPrefix):
 """ % (defCommand, cmdPrefix, command, cmdPrefix, cmdPrefix)
     return cmdStr
 
-print(header("Bravura","Georgios Tsotsos"))
-print(packageName("Bravura","2020-09-03 v0.01 LaTeX package for BravuraText"))
-print(packageRequirements(["fontspec"]))
-print(importFont(fontNameNormalize("BravuraText"),"BravuraText.otf","fonts"))
-print(createCommandNames("BravuraText"))
-Cmds = createCommandNames("BravuraText")
-print(initCommands(Cmds[0],Cmds[1],fontNameNormalize("BravuraText")))
+def createPackage(fontname, author, description, requirements, filepath):
+    result = ""
+    #command names, normalized and definitions.
+    fontNormalized = fontNameNormalize(fontname)
+    cmds = createCommandNames(fontname)
+    # TO REPLACE
+    filename = "BravuraText.otf"
+    # TO REPLACE
+    # creates header commends.
+    result = header(fontname, author)
+    # creates package name definition.
+    result += "\n" + packageName(fontname, description)
+    # creates package requirements.
+    result += "\n" + packageRequirements(requirements)
+    # imports font (uses fontspec).
+    result += "\n" + importFont(fontNormalized,filename,filepath)
+    # creates intial commands.
+    result += "\n" + initCommands(cmds[0],cmds[1],fontNormalized)
+
+    return result
+
+#print(header("Bravura","Georgios Tsotsos"))
+#print(packageName("Bravura","2020-09-03 v0.01 LaTeX package for BravuraText"))
+#print(packageRequirements(["fontspec"]))
+#print(importFont(fontNameNormalize("BravuraText"),"BravuraText.otf","fonts"))
+#print(createCommandNames("BravuraText"))
+#Cmds = createCommandNames("BravuraText")
+#print(initCommands(Cmds[0],Cmds[1],fontNameNormalize("BravuraText")))
+
+sty = createPackage("BravuraText","Georgios Tsotsos", "2020-09-03 v0.01 LaTeX package for BravuraText",None,"fonts")
+print(sty)
+
 sys.exit()
 
 commands = "\n"
