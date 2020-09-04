@@ -21,12 +21,17 @@ def packageName(fontname,description):
 """ % (fontname, description)
     return pkgstr
 
-#def packageRequirements(requirements):
-
+def packageRequirements(requirements):
+    reqstr = ""
+    if not isinstance(requirements, list):
+        return reqstr
+    for pkg in requirements:
+        reqstr += "\\RequirePackage{"+pkg+"}"
+    return reqstr
 
 print(header("Bravura","Georgios Tsotsos"))
 print(packageName("Bravura","2020-09-03 v0.01 LaTeX package for BravuraText"))
-
+print(packageRequirements(["fontspec"]))
 
 sys.exit()
 
