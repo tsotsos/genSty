@@ -1,5 +1,6 @@
 import json
 import sys
+import os
 
 def header(fontname,author):
     headstr = """
@@ -13,6 +14,25 @@ def header(fontname,author):
 %%
 """ % (fontname,author)
     return headstr
+
+def findByExt(path,ext):
+    files = []
+    for file in os.listdir(path):
+        if file.endswith("."+ext):
+            files.append(os.path.join(path, file))
+    return files
+
+def getFontsByType(path):
+    files = []
+    fontExt = ["otf","ttf"]
+    for ext in fontExt:
+        fonts = findByExt(path,ext)
+        if not isinstance(fonts,list):
+            continue
+        for font in fonts:
+            files.append(font)
+
+    return files
 
 def packageName(fontname,description):
     pkgstr = """
@@ -85,6 +105,9 @@ def createPackage(fontname, author, description, requirements, filepath):
 
 sty = createPackage("BravuraText","Georgios Tsotsos", "2020-09-03 v0.01 LaTeX package for BravuraText",None,"fonts")
 print(sty)
+
+allfonts = getFontsByType("fonts")
+print(allfonts)
 
 sys.exit()
 
