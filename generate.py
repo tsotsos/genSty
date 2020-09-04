@@ -38,10 +38,27 @@ def fontNameNormalize(fontname,prefix = True):
 def importFont(fontname,fontfile,path):
     return "\\newfontfamily\\"+fontname+"{"+fontfile+"}[Path=./"+path+"]"
 
+def createCommandNames(fontname):
+    defCmd = "Define"+fontNameNormalize(fontname,False)
+    cmd = fontNameNormalize(fontname,False)
+    return (defCmd,cmd)
+
+def initCommands(defCommand, command, cmdPrefix):
+    cmdStr = """
+\\newcommand{\\%s}[2]{%%
+  \\expandafter\\newcommand\\csname %s#1\\endcsname{#2}%%
+}
+\\newcommand{\\%s}[1]{\\makeatletter \\%s \\csname %s#1\\endcsname \\reset@font\\makeatother}
+""" % (defCommand, cmdPrefix, command, cmdPrefix, cmdPrefix)
+    return cmdStr
+
 print(header("Bravura","Georgios Tsotsos"))
 print(packageName("Bravura","2020-09-03 v0.01 LaTeX package for BravuraText"))
 print(packageRequirements(["fontspec"]))
 print(importFont(fontNameNormalize("BravuraText"),"BravuraText.otf","fonts"))
+print(createCommandNames("BravuraText"))
+Cmds = createCommandNames("BravuraText")
+print(initCommands(Cmds[0],Cmds[1],fontNameNormalize("BravuraText")))
 sys.exit()
 
 commands = "\n"
