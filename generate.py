@@ -1,4 +1,22 @@
 import json
+import sys
+
+def header(fontname,author):
+    headstr = """
+%% %s Font Package
+%%
+%% (c) 2020 %s
+%%
+%%%% This program can be redistributed and/or modified under the terms
+%%%% of the LaTeX Project Public License Distributed from CTAN archives
+%%%% in directory macros/latex/base/lppl.txt.
+%%
+""" % (fontname,author)
+    return headstr
+
+print(header("Bravura","Georgios Tsotsos"))
+
+sys.exit()
 
 commands = "\n"
 commandsText = "\n"
