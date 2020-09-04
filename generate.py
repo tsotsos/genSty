@@ -29,10 +29,19 @@ def packageRequirements(requirements):
         reqstr += "\\RequirePackage{"+pkg+"}"
     return reqstr
 
+def fontNameNormalize(fontname,prefix = True):
+    result = fontname.lower().replace(" ","")
+    if prefix == True:
+        return "fnt"+result
+    return result
+
+def importFont(fontname,fontfile,path):
+    return "\\newfontfamily\\"+fontname+"{"+fontfile+"}[Path=./"+path+"]"
+
 print(header("Bravura","Georgios Tsotsos"))
 print(packageName("Bravura","2020-09-03 v0.01 LaTeX package for BravuraText"))
 print(packageRequirements(["fontspec"]))
-
+print(importFont(fontNameNormalize("BravuraText"),"BravuraText.otf","fonts"))
 sys.exit()
 
 commands = "\n"
