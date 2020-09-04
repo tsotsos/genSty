@@ -1,7 +1,11 @@
 import os
 import json
-from datetime import datetime
+import argparse
 import sys
+from datetime import datetime
+
+__version__ = '0.1'
+__author__ = 'Georgios Tsotsos'
 
 def header(fontname,author):
     headstr = """
@@ -99,13 +103,42 @@ def preparePackage(fontname, author, description, requirements, fontfile):
 
     return result
 
+def validate(arguments):
+    if not os.path.exists(arguments.directory):
+        raise Exception("Error! folder does not exists!")
+    name = arguments.name
+    version = arguments.styver
+    description = arguments.description
+    author = arguments.author
 
-allfonts = getFontsByType("fonts")
-print(allfonts)
-print(defaultDescription(allfonts[0],"v.0.1"))
-sty = preparePackage("BravuraText","Georgios Tsotsos", "2020-09-03 v0.01 LaTeX package for BravuraText",None,allfonts[0])
-print(sty)
+    if version == None:
+        version = "v.0.1"
+    if description == None:
+        description = defaultDescription(name,version)
+    if author == None:
+        author == __author__
 
+    return False
+
+def main():
+    #allfonts = getFontsByType("fonts")
+    #desc = defaultDescription(allfonts[0],"v.0.1")
+    #sty = preparePackage("BravuraText","Georgios Tsotsos", desc ,None,allfonts[0])
+    #print(sty)
+    parser = argparse.ArgumentParser(prog='genFontSty',description="LaTeX Style file generator for fonts")
+    parser.add_argument('--version','-v', action='version', version='%(prog)s '+ __version__)
+    parser.add_argument('directory',help='Font(s) directory.')
+    parser.add_argument('-all','-a', type=bool,help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory')
+    parser.add_argument('-name','-n', type=str,help='If no name defined %(prog)s will set filename')
+    parser.add_argument('-description','-D', type=str,help='LaTeX Style package description.')
+    parser.add_argument('-author','-A', type=str,help='Author\'s name.')
+    parser.add_argument('-styver','-V', type=str,help='LaTeX package version.')
+    args = parser.parse_args()
+    if validate(args) == False:
+        raise Exception("Check your parameters")
+
+if __name__ == "__main__":
+   main()
 
 sys.exit()
 commands = "\n"
