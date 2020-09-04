@@ -1,6 +1,7 @@
-import json
-import sys
 import os
+import json
+from datetime import datetime
+import sys
 
 def header(fontname,author):
     headstr = """
@@ -33,6 +34,10 @@ def getFontsByType(path):
             files.append(font)
 
     return files
+
+def defaultDescription(fontname,version):
+    currentDate = datetime.today().strftime('%Y-%m-%d')
+    return "%s %s LaTeX package for %s" % (currentDate, version, fontname)
 
 def packageName(fontname,description):
     pkgstr = """
@@ -74,7 +79,7 @@ def initCommands(defCommand, command, cmdPrefix):
 """ % (defCommand, cmdPrefix, command, cmdPrefix, cmdPrefix)
     return cmdStr
 
-def createPackage(fontname, author, description, requirements, fontfile):
+def preparePackage(fontname, author, description, requirements, fontfile):
     result = ""
     #command names, normalized and definitions.
     fontNormalized = fontNameNormalize(fontname)
@@ -94,23 +99,15 @@ def createPackage(fontname, author, description, requirements, fontfile):
 
     return result
 
-#print(header("Bravura","Georgios Tsotsos"))
-#print(packageName("Bravura","2020-09-03 v0.01 LaTeX package for BravuraText"))
-#print(packageRequirements(["fontspec"]))
-#print(importFont(fontNameNormalize("BravuraText"),"BravuraText.otf","fonts"))
-#print(createCommandNames("BravuraText"))
-#Cmds = createCommandNames("BravuraText")
-#print(initCommands(Cmds[0],Cmds[1],fontNameNormalize("BravuraText")))
 
 allfonts = getFontsByType("fonts")
 print(allfonts)
-
-sty = createPackage("BravuraText","Georgios Tsotsos", "2020-09-03 v0.01 LaTeX package for BravuraText",None,allfonts[0])
+print(defaultDescription(allfonts[0],"v.0.1"))
+sty = preparePackage("BravuraText","Georgios Tsotsos", "2020-09-03 v0.01 LaTeX package for BravuraText",None,allfonts[0])
 print(sty)
 
 
 sys.exit()
-
 commands = "\n"
 commandsText = "\n"
 with open('glyphnames.json') as json_file:
