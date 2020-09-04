@@ -74,14 +74,13 @@ def initCommands(defCommand, command, cmdPrefix):
 """ % (defCommand, cmdPrefix, command, cmdPrefix, cmdPrefix)
     return cmdStr
 
-def createPackage(fontname, author, description, requirements, filepath):
+def createPackage(fontname, author, description, requirements, fontfile):
     result = ""
     #command names, normalized and definitions.
     fontNormalized = fontNameNormalize(fontname)
     cmds = createCommandNames(fontname)
-    # TO REPLACE
-    filename = "BravuraText.otf"
-    # TO REPLACE
+    filename = os.path.basename(fontfile)
+    filepath = os.path.dirname(fontfile)
     # creates header commends.
     result = header(fontname, author)
     # creates package name definition.
@@ -103,11 +102,12 @@ def createPackage(fontname, author, description, requirements, filepath):
 #Cmds = createCommandNames("BravuraText")
 #print(initCommands(Cmds[0],Cmds[1],fontNameNormalize("BravuraText")))
 
-sty = createPackage("BravuraText","Georgios Tsotsos", "2020-09-03 v0.01 LaTeX package for BravuraText",None,"fonts")
-print(sty)
-
 allfonts = getFontsByType("fonts")
 print(allfonts)
+
+sty = createPackage("BravuraText","Georgios Tsotsos", "2020-09-03 v0.01 LaTeX package for BravuraText",None,allfonts[0])
+print(sty)
+
 
 sys.exit()
 
