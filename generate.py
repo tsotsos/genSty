@@ -14,7 +14,19 @@ def header(fontname,author):
 """ % (fontname,author)
     return headstr
 
+def packageName(fontname,description):
+    pkgstr = """
+\\ProvidesPackage{%s}
+  [%s]
+""" % (fontname, description)
+    return pkgstr
+
+#def packageRequirements(requirements):
+
+
 print(header("Bravura","Georgios Tsotsos"))
+print(packageName("Bravura","2020-09-03 v0.01 LaTeX package for BravuraText"))
+
 
 sys.exit()
 
