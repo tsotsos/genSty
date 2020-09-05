@@ -3,6 +3,7 @@ import json
 import argparse
 import sys
 from datetime import datetime
+from fontTools import ttLib
 
 __version__ = '0.1'
 __author__ = 'Georgios Tsotsos'
@@ -19,6 +20,17 @@ def header(fontname,author):
 %%
 """ % (fontname,author)
     return headstr
+
+def isfile (path):
+    if os.path.isfile(path):
+        return True
+    return False
+
+def isdir (path):
+    if os.path.isdir(path):
+        return True
+    return False
+
 
 def findByExt(path,ext):
     files = []
@@ -38,6 +50,24 @@ def getFontsByType(path):
             files.append(font)
 
     return files
+
+def fontName( fontfile ):
+    """Get the name from the font's names table.
+    Customized function, original retrieved from: https://bit.ly/3lS4nMO
+    """
+    name = ""
+    font = ttLib.TTFont(fontfile)
+    for record in font['name'].names:
+        if record.nameID == 4 and not name:
+            if b'\000' in record.string:
+                name = str(record.string, 'utf-16-be').encode('utf-8')
+            else:
+                name = record.string
+                if name:
+                    break
+    #TODO: test for issues with multiple fonts
+    name = name.decode('utf-8')
+    return name.replace(" ","")
 
 def defaultDescription(fontname,version):
     currentDate = datetime.today().strftime('%Y-%m-%d')
@@ -103,30 +133,29 @@ def preparePackage(fontname, author, description, requirements, fontfile):
 
     return result
 
-def validate(arguments):
-    name = arguments.name
-    version = arguments.styver
-    description = arguments.description
-    author = arguments.author
+def validateNormalize(arguments):
+    optionals = dict()
+    optionals["name"] = arguments.name
+    optionals["version"] = arguments.ver
+    optionals["description"] = arguments.description
+    optionals["author"] = arguments.author
 
-    if version == None:
-        version = "v.0.1"
-    if description == None:
-        description = defaultDescription(name,version)
-    if author == None:
-        author == __author__
+    if optionals["version"] == None:
+        optionals["version"]= "v.0.1"
+    if optionals["description"] == None:
+        if optionals["name"] == None:
+            optionals["description"] = None
+        else:
+            optionals["description"] = defaultDescription(optionals["name"],optionals["version"])
+    if optionals["author"] == None:
+        optionals["author"] == __author__
 
-    return False
+    return optionals
 
-def isfile (path):
-    if os.path.isfile(path):
-        return True
-    return False
-
-def isdir (path):
-    if os.path.isdir(path):
-        return True
-    return False
+def handleFolder(path,author,description,version):
+    allfonts = getFontsByType(path)
+    print(fontName(allfonts[0]))
+    print(allfonts)
 
 def main():
     #allfonts = getFontsByType("fonts")
@@ -145,10 +174,13 @@ def main():
 
     if isdir(args.path) == False and isfile(args.path) == False:
         raise Exception("Error! First argument must be file or directory.")
-
+    # Normalize and validate optional values
+    optionals = validateNormalize(args)
     # In case of "all" flag we create styles for every font in folder
-    if args.all == True:
-        print("All fonts created")
+    if args.all == True and isdir(args.path) == False:
+        raise Exception("Error! flag --all must be defined along with directory only!")
+    if args.all == True and isdir(args.path) == True:
+        handleFolder(args.path,optionals["author"],optionals["description"],optionals["version"])
 
 if __name__ == "__main__":
    main()
