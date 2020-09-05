@@ -104,8 +104,6 @@ def preparePackage(fontname, author, description, requirements, fontfile):
     return result
 
 def validate(arguments):
-    if not os.path.exists(arguments.directory):
-        raise Exception("Error! folder does not exists!")
     name = arguments.name
     version = arguments.styver
     description = arguments.description
@@ -120,6 +118,16 @@ def validate(arguments):
 
     return False
 
+def isfile (path):
+    if os.path.isfile(path):
+        return True
+    return False
+
+def isdir (path):
+    if os.path.isdir(path):
+        return True
+    return False
+
 def main():
     #allfonts = getFontsByType("fonts")
     #desc = defaultDescription(allfonts[0],"v.0.1")
@@ -127,15 +135,20 @@ def main():
     #print(sty)
     parser = argparse.ArgumentParser(prog='genFontSty',description="LaTeX Style file generator for fonts")
     parser.add_argument('--version','-v', action='version', version='%(prog)s '+ __version__)
-    parser.add_argument('directory',help='Font(s) directory.')
-    parser.add_argument('-all','-a', type=bool,help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory')
-    parser.add_argument('-name','-n', type=str,help='If no name defined %(prog)s will set filename')
-    parser.add_argument('-description','-D', type=str,help='LaTeX Style package description.')
-    parser.add_argument('-author','-A', type=str,help='Author\'s name.')
-    parser.add_argument('-styver','-V', type=str,help='LaTeX package version.')
+    parser.add_argument('path',help='Font(s) path. It can be either a directory in case of multiple fonts or file path.')
+    parser.add_argument('--all','-a', action="store_true",help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory')
+    parser.add_argument('--name','-n', type=str,help='If no name defined or --all is used %(prog)s will set filename')
+    parser.add_argument('--description','-D', type=str,help='LaTeX Style package description.')
+    parser.add_argument('--author','-A', type=str,help='Author\'s name.')
+    parser.add_argument('--ver','-V', type=str,help='LaTeX package version.')
     args = parser.parse_args()
-    if validate(args) == False:
-        raise Exception("Check your parameters")
+
+    if isdir(args.path) == False and isfile(args.path) == False:
+        raise Exception("Error! First argument must be file or directory.")
+
+    # In case of "all" flag we create styles for every font in folder
+    if args.all == True:
+        print("All fonts created")
 
 if __name__ == "__main__":
    main()
