@@ -30,6 +30,14 @@ def findByExt(path,ext):
             files.append(os.path.join(path, file))
     return files
 
+def checkJson(path):
+    """Defines if a file exists and its json."""
+    if not isfile(path):
+        return False
+    if not path.endswith(".json"):
+        return False
+    return True
+
 def getFontsByType(path):
     """Gets supported fonts by file extesion in a given folder."""
     files = []
@@ -62,7 +70,23 @@ def fontName( fontfile ):
     name = name.decode('utf-8')
     return name.replace(" ","")
 
+def fontCodepoints( fontfile ):
+    """Creates a dict of codepoints and names for every character/symbol in the
+    given font."""
+    font = ttLib.TTFont(fontfile)
+    charcodes = []
+    for x in font["cmap"].tables:
+        if not x.isUnicode():
+            continue
+        for y in x.cmap.items():
+            charcodes.append(y)
+    font.close()
+    sorted(charcodes)
+    return charcodes
+
+
 def latexFriendlyName(s):
+    """Oneliner to return normalized name for LaTeX Style package."""
     return(" ".join(x.capitalize() for x in s.split(" ")).replace(" ","").replace("-",""))
 
 def fontNormalize( charcodes, private = False, excluded = []):
@@ -78,22 +102,18 @@ def fontNormalize( charcodes, private = False, excluded = []):
             continue
         if description in excluded:
             continue
-        result.append((curcodepoint,description))
+        result.append((curcodepoint[1:],description))
     return result
 
-def fontCodepoints( fontfile ):
-    """Creates a dict of codepoints and names for every character/symbol in the
-    given font."""
-    font = ttLib.TTFont(fontfile)
-    charcodes = []
-    for x in font["cmap"].tables:
-        if not x.isUnicode():
-            continue
-        for y in x.cmap.items():
-            charcodes.append(y)
-    font.close()
-    sorted(charcodes)
-    return charcodes
+def glyphnameParse( glyphnameFile ):
+    """Parses glyphname file according w3c/smufl reference."""
+    result = []
+    with open( glyphnameFile ) as json_file:
+        gnames = json.load(json_file)
+        for gname in gnames:
+            codepoint = gnames[gname]["codepoint"].split("+")[1]
+            result.append((codepoint,gname))
+    return result
 
 def defaultDescription(fontname,version):
     """Creates default description text based on name and version."""
@@ -196,19 +216,41 @@ def validateNormalize(arguments):
         if optionals["name"] == None:
             optionals["description"] = None
         else:
-            optionals["description"] = defaultDescription(optionals["name"],optionals["version"])
+            optionals["description"] = defaultDescription(optionals["name"],
+                                                          optionals["version"])
     if optionals["author"] == None:
         optionals["author"] == __author__
 
     return optionals
 
-def handleFolder(path,author,description,version):
+def retrieveCodes( filepath, smufl):
+    """Retrieves the codepoints and symbols for the desired font, handles
+    differently if its smufl font."""
+    if smufl != None and checkJson(smufl) == False:
+        raise Exception("Error! Please provide a valid smufl json file")
+    elif smufl != None and checkJson(smufl) == True:
+        return glyphnameParse(smufl)
+    else:
+        charcodes = fontCodepoints(filepath)
+        charcodes = fontNormalize(charcodes,excluded=["????"])
+        if isinstance(charcodes,list):
+            return charcodes
+        else:
+            raise Exception("Uknown font parse error")
+
+def createLaTexCommands( charcodes ):
+    """Generates LaTeX commands for each char code."""
+    if not isinstance(charcodes,list):
+        return False
+    commands = "\n"
+    commands += "\\DefineBravura{"+gname+"}{\\char\""+codepoint+"\\relax}\n"
+
+
+def handleFolder(path,author,description,version,smufl):
     allfonts = getFontsByType(path)
-    charcodes = fontCodepoints(allfonts[0])
-    for k,v in fontNormalize(charcodes,excluded=["????"]):
+    charcodes = retrieveCodes(allfonts[0],smufl)
+    for k,v in charcodes:
         print(k+" : "+v)
-    #namelist_from_font(allfonts[0])
-    #print(allfonts)
 
 
 def main():
@@ -220,8 +262,9 @@ def main():
     parser.add_argument('--version','-v', action='version', version='%(prog)s '+ __version__)
     parser.add_argument('path',help='Font(s) path. It can be either a directory in case of multiple fonts or file path.')
     parser.add_argument('--all','-a', action="store_true",help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory')
+    parser.add_argument('--smufl','-s', type=str,help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory based on glyphnames provided.')
     parser.add_argument('--name','-n', type=str,help='In case of single font provided forces specified name. Otherwise %(prog)s detects the name from file.')
-    parser.add_argument('--description','-D', type=str,help='LaTeX Style package description.')
+    parser.add_argument('--description','-D', type=str,help='LaTeX Style package description. It is ignored in case of --all flag.')
     parser.add_argument('--author','-A', type=str,help='Author\'s name.')
     parser.add_argument('--ver','-V', type=str,help='LaTeX package version.')
     args = parser.parse_args()
@@ -234,7 +277,7 @@ def main():
     if args.all == True and isdir(args.path) == False:
         raise Exception("Error! flag --all must be defined along with directory only!")
     if args.all == True and isdir(args.path) == True:
-        handleFolder(args.path,optionals["author"],optionals["description"],optionals["version"])
+        handleFolder(args.path,optionals["author"],optionals["description"],optionals["version"],args.smufl)
 
 if __name__ == "__main__":
    main()
