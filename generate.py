@@ -239,20 +239,24 @@ def retrieveCodes( filepath, smufl):
         else:
             raise Exception("Uknown font parse error")
 
-def createLaTexCommands( charcodes ):
+def createLaTexCommands( charcodes, fontfile ):
     """Generates LaTeX commands for each char code."""
     if not isinstance(charcodes,list):
         return False
+    fontname = fontName(fontfile)
+    cmds = createCommandNames(fontname)
     commands = "\n"
-    commands += "\\DefineBravura{"+gname+"}{\\char\""+codepoint+"\\relax}\n"
-
+    for codepoint,desc in charcodes:
+        commands += "\\"+cmds[0]+"{"+desc+"}{\\char\""+codepoint+"\\relax}\n"
+    if commands == "\n":
+        raise Exception("Error. Cannot create LaTeX style commands")
+    return commands
 
 def handleFolder(path,author,description,version,smufl):
     allfonts = getFontsByType(path)
     charcodes = retrieveCodes(allfonts[0],smufl)
-    for k,v in charcodes:
-        print(k+" : "+v)
-
+    latexCommands = createLaTexCommands(charcodes,allfonts[0])
+    print(latexCommands)
 
 def main():
     #allfonts = getFontsByType("fonts")
