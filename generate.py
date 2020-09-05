@@ -181,11 +181,12 @@ def initCommands(defCommand, command, cmdPrefix):
 """ % (defCommand, cmdPrefix, command, cmdPrefix, cmdPrefix)
     return cmdStr
 
-def preparePackage(fontname, author, description, requirements, fontfile):
+def preparePackage(fontfile, author, description, requirements=[]):
     """Prepares LaTeX package header, initialization commands and requirements."""
     result = ""
     #command names, normalized and definitions.
-    fontNormalized = fontNameNormalize(fontname)
+    #fontNormalized = fontNameNormalize(fontname)
+    fontname = fontName(fontfile)
     cmds = createCommandNames(fontname)
     filename = os.path.basename(fontfile)
     filepath = os.path.dirname(fontfile)
@@ -196,9 +197,9 @@ def preparePackage(fontname, author, description, requirements, fontfile):
     # creates package requirements.
     result += "\n" + packageRequirements(requirements)
     # imports font (uses fontspec).
-    result += "\n" + importFont(fontNormalized,filename,filepath)
+    result += "\n" + importFont(fontname,filename,filepath)
     # creates intial commands.
-    result += "\n" + initCommands(cmds[0],cmds[1],fontNormalized)
+    result += "\n" + initCommands(cmds[0],cmds[1],fontname)
 
     return result
 
