@@ -244,23 +244,25 @@ def createLaTexCommands( charcodes, fontfile ):
         raise Exception("Error. Cannot create LaTeX style commands")
     return commands
 
+def createPackage (font, author, description, version, smufl):
+    """ Creates LaTeX Style file."""
+    charcodes = retrieveCodes(font,smufl)
+    if description == None:
+        description = defaultDescription(fontName(font),version)
+    header = preparePackage(font,author,description)
+    latexCommands = createLaTexCommands(charcodes,font)
+
+    return header + latexCommands
+
 def handleFolder(path,author,description,version,smufl):
     fonts = getFontsByType(path)
     result = []
     for font in fonts:
-        charcodes = retrieveCodes(font,smufl)
-        if description == None:
-            description = defaultDescription(fontName(font),version)
-        header = preparePackage(font,author,description)
-        latexCommands = createLaTexCommands(charcodes,font)
-        sty = header + latexCommands
+        sty = createPackage(font, author, description, version, smufl)
         result.append(sty)
     print (result[0])
+
 def main():
-    #allfonts = getFontsByType("fonts")
-    #desc = defaultDescription(allfonts[0],"v.0.1")
-    #sty = preparePackage("BravuraText","Georgios Tsotsos", desc ,None,allfonts[0])
-    #print(sty)
     parser = argparse.ArgumentParser(prog='genFontSty',description="LaTeX Style file generator for fonts")
     parser.add_argument('--version','-v', action='version', version='%(prog)s '+ __version__)
     parser.add_argument('path',help='Font(s) path. It can be either a directory in case of multiple fonts or file path.')
@@ -281,6 +283,8 @@ def main():
         raise Exception("Error! flag --all must be defined along with directory only!")
     if args.all == True and isdir(args.path) == True:
         handleFolder(args.path,optionals["author"],optionals["description"],optionals["version"],args.smufl)
+    if args.all == False and isfile(args.path) == True:
+        createPackage(args.path,optionals["author"],optionals["description"],optionals["version"],args.smufl)
 
 if __name__ == "__main__":
    main()
