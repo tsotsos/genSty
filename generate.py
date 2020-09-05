@@ -4,7 +4,8 @@ import argparse
 import sys
 from datetime import datetime
 from fontTools import ttLib
-
+from fontTools.unicode import Unicode
+import codecs
 __version__ = '0.1'
 __author__ = 'Georgios Tsotsos'
 
@@ -56,16 +57,43 @@ def fontName( fontfile ):
                 name = record.string
                 if name:
                     break
+    font.close()
     #TODO: test for issues with multiple fonts
     name = name.decode('utf-8')
     return name.replace(" ","")
 
+def latexFriendlyName(s):
+    return(" ".join(x.capitalize() for x in s.split(" ")).replace(" ","").replace("-",""))
+
+def fontNormalize( charcodes, private = False, excluded = []):
+    """Accepts list of tuples with charcodes and codepoints and returns
+    names and charcodes."""
+    if not isinstance(charcodes,list):
+        return False
+    result = []
+    for charcode, codepoint in charcodes:
+        description = latexFriendlyName(Unicode[charcode])
+        curcodepoint = str(codepoint)
+        if private == True and charcode >= 0xE000 and charcode <=0xF8FF:
+            continue
+        if description in excluded:
+            continue
+        result.append((curcodepoint,description))
+    return result
+
 def fontCodepoints( fontfile ):
-    """Creates a dict of codepoints and names for every character/sumbol in the
+    """Creates a dict of codepoints and names for every character/symbol in the
     given font."""
     font = ttLib.TTFont(fontfile)
-    for table in font["cmap"].tables:
-        print(table)
+    charcodes = []
+    for x in font["cmap"].tables:
+        if not x.isUnicode():
+            continue
+        for y in x.cmap.items():
+            charcodes.append(y)
+    font.close()
+    sorted(charcodes)
+    return charcodes
 
 def defaultDescription(fontname,version):
     """Creates default description text based on name and version."""
@@ -176,8 +204,12 @@ def validateNormalize(arguments):
 
 def handleFolder(path,author,description,version):
     allfonts = getFontsByType(path)
-    fontCodepoints(allfonts[0])
-    print(allfonts)
+    charcodes = fontCodepoints(allfonts[0])
+    for k,v in fontNormalize(charcodes,excluded=["????"]):
+        print(k+" : "+v)
+    #namelist_from_font(allfonts[0])
+    #print(allfonts)
+
 
 def main():
     #allfonts = getFontsByType("fonts")
