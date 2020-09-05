@@ -8,19 +8,6 @@ from fontTools import ttLib
 __version__ = '0.1'
 __author__ = 'Georgios Tsotsos'
 
-def header(fontname,author):
-    headstr = """
-%% %s Font Package
-%%
-%% (c) 2020 %s
-%%
-%%%% This program can be redistributed and/or modified under the terms
-%%%% of the LaTeX Project Public License Distributed from CTAN archives
-%%%% in directory macros/latex/base/lppl.txt.
-%%
-""" % (fontname,author)
-    return headstr
-
 def isfile (path):
     """ Detects if the given string is file."""
     if os.path.isfile(path):
@@ -73,10 +60,31 @@ def fontName( fontfile ):
     name = name.decode('utf-8')
     return name.replace(" ","")
 
+def fontCodepoints( fontfile ):
+    """Creates a dict of codepoints and names for every character/sumbol in the
+    given font."""
+    font = ttLib.TTFont(fontfile)
+    for table in font["cmap"].tables:
+        print(table)
+
 def defaultDescription(fontname,version):
     """Creates default description text based on name and version."""
     currentDate = datetime.today().strftime('%Y-%m-%d')
     return "%s %s LaTeX package for %s" % (currentDate, version, fontname)
+
+def header(fontname,author):
+    """Creates LaTeX Style header."""
+    headstr = """
+%% %s Font Package
+%%
+%% (c) 2020 %s
+%%
+%%%% This program can be redistributed and/or modified under the terms
+%%%% of the LaTeX Project Public License Distributed from CTAN archives
+%%%% in directory macros/latex/base/lppl.txt.
+%%
+""" % (fontname,author)
+    return headstr
 
 def packageName(fontname,description):
     """Creates LaTeX package descriotn and header."""
@@ -168,7 +176,7 @@ def validateNormalize(arguments):
 
 def handleFolder(path,author,description,version):
     allfonts = getFontsByType(path)
-    print(fontName(allfonts[0]))
+    fontCodepoints(allfonts[0])
     print(allfonts)
 
 def main():
