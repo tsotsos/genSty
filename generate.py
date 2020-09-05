@@ -167,9 +167,8 @@ def importFont(fontname,fontfile,path):
 
 def createCommandNames(fontname):
     """Creates command name, definition and command."""
-    defCmd = "Define"+fontNameNormalize(fontname,False)
-    cmd = fontNameNormalize(fontname,False)
-    return (defCmd,cmd)
+    defCmd = "Define"+fontname
+    return (defCmd,fontname)
 
 def initCommands(defCommand, command, cmdPrefix):
     """Provides initialization commands for font."""
@@ -199,7 +198,7 @@ def preparePackage(fontfile, author, description, requirements=[]):
     # imports font (uses fontspec).
     result += "\n" + importFont(fontname,filename,filepath)
     # creates intial commands.
-    result += "\n" + initCommands(cmds[0],cmds[1],fontname)
+    result += "\n" + initCommands(cmds[0],cmds[1],fontNameNormalize(fontname,True))
 
     return result
 
@@ -213,15 +212,8 @@ def validateNormalize(arguments):
 
     if optionals["version"] == None:
         optionals["version"]= "v.0.1"
-    if optionals["description"] == None:
-        if optionals["name"] == None:
-            optionals["description"] = None
-        else:
-            optionals["description"] = defaultDescription(optionals["name"],
-                                                          optionals["version"])
     if optionals["author"] == None:
-        optionals["author"] == __author__
-
+        optionals["author"] = __author__
     return optionals
 
 def retrieveCodes( filepath, smufl):
@@ -253,11 +245,17 @@ def createLaTexCommands( charcodes, fontfile ):
     return commands
 
 def handleFolder(path,author,description,version,smufl):
-    allfonts = getFontsByType(path)
-    charcodes = retrieveCodes(allfonts[0],smufl)
-    latexCommands = createLaTexCommands(charcodes,allfonts[0])
-    print(latexCommands)
-
+    fonts = getFontsByType(path)
+    result = []
+    for font in fonts:
+        charcodes = retrieveCodes(font,smufl)
+        if description == None:
+            description = defaultDescription(fontName(font),version)
+        header = preparePackage(font,author,description)
+        latexCommands = createLaTexCommands(charcodes,font)
+        sty = header + latexCommands
+        result.append(sty)
+    print (result[0])
 def main():
     #allfonts = getFontsByType("fonts")
     #desc = defaultDescription(allfonts[0],"v.0.1")
@@ -269,9 +267,9 @@ def main():
     parser.add_argument('--all','-a', action="store_true",help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory')
     parser.add_argument('--smufl','-s', type=str,help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory based on glyphnames provided.')
     parser.add_argument('--name','-n', type=str,help='In case of single font provided forces specified name. Otherwise %(prog)s detects the name from file.')
-    parser.add_argument('--description','-D', type=str,help='LaTeX Style package description. It is ignored in case of --all flag.')
-    parser.add_argument('--author','-A', type=str,help='Author\'s name.')
-    parser.add_argument('--ver','-V', type=str,help='LaTeX package version.')
+    parser.add_argument('--description', type=str,help='LaTeX Style package description. It is ignored in case of --all flag.')
+    parser.add_argument('--author', type=str,help='Author\'s name.')
+    parser.add_argument('--ver', type=str,help='LaTeX package version.')
     args = parser.parse_args()
 
     if isdir(args.path) == False and isfile(args.path) == False:
