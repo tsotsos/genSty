@@ -18,7 +18,7 @@ setup(
     name='gensty',
     version=__version__,
     description='LaTex style generator for ttf/otf fonts. Supports Smufl.',
-    long_description= readme
+    long_description= readme,
     author=__author__,
     author_email=__email__,
     url='https://github.com/tsotsos/gensty',

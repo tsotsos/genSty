@@ -1,0 +1,28 @@
+Metadata-Version: 1.1
+Name: gensty
+Version: 0.1
+Summary: LaTex style generator for ttf/otf fonts. Supports Smufl.
+Home-page: https://github.com/tsotsos/gensty
+Author: Georgios Tsotsos
+Author-email: tsotsos@gmail.com
+License: GPL-2.0 License
+Description: # genSty
+        Latex package generator for ttf/otf fonts. Supports SMuFL.
+        # Incomplete project
+        
+        
+Keywords: latex generator package fonts
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Education
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: Intended Audience :: Science/Research
+Classifier: Intended Audience :: Information Technology
+Classifier: License :: OSI Approved :: GNU General Public License v2 (GPLv2)
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.8
