@@ -305,6 +305,9 @@ def singlePackage(fontfile,content):
     """Creates a single package folder and its files."""
     fontname = fontName(fontfile)
     createDir(fontname)
+    packageFontsPath = fontname + "/fonts"
+    createDir(packageFontsPath)
+    shutil.copy2(fontfile,packageFontsPath)
     writePackage(fontname+"/"+fontname, content)
 
 def createPackage(fontfiles, content):
