@@ -285,24 +285,27 @@ def createStyleFile(font, author, description, version, smufl):
 
 
 def handleFolder(path, author, description, version, smufl):
+    """Iterates through provided path and returns fontfiles and style files
+    content."""
     fonts = getFontsByType(path)
     result = []
     fontfiles = []
     for font in fonts:
-        sty = createStyleFile(font, author, description, version, smufl)
+        _, sty = createStyleFile(font, author, description, version, smufl)
         result.append(sty)
         fontfiles.append(font)
     return fontfiles,result
 
 
-def createPackage(fontfile, content):
-    if isinstance(fontfile, list) and isinstance(content, list):
-        for font in fontfile:
-            fontname = fontname(font)
+def createPackage(fontfiles, content):
+    """Creates the final package with style and font files."""
+    if isinstance(fontfiles, list) and isinstance(content, list):
+        for font in fontfiles:
+            fontname = fontName(font)
             for style in content:
                 writePackage(fontname, style)
-    elif isinstance(fontfile,str) and isinstance(content,str):
-        fontname = fontName(fontfile)
+    elif isinstance(fontfiles,str) and isinstance(content,str):
+        fontname = fontName(fontfiles)
         writePackage(fontname, content)
     else:
         raise Exception("Error, cannot save files.")
@@ -339,15 +342,15 @@ def main():
             "Error! flag --all must be defined along with directory only!")
 
     if args.all == True and isdir(args.path) == True:
-        fontfile, result = handleFolder( args.path, optionals["author"],
+        fontfiles, result = handleFolder( args.path, optionals["author"],
                               optionals["description"], optionals["version"],
                               args.smufl)
     if args.all == False and isfile(args.path) == True:
-        fontfile, result = createStyleFile( args.path, optionals["author"],
+        fontfiles, result = createStyleFile( args.path, optionals["author"],
                                 optionals["description"], optionals["version"],
                                 args.smufl)
-
-    createPackage(fontfile, result)
+    # Create LaTeX package(s).
+    createPackage(fontfiles, result)
 
 if __name__ == "__main__":
     main()
