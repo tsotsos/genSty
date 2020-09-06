@@ -2,3 +2,6 @@ testdata
 dist
 build
 gensty.egg-info
+__pycache__
+.ropeproject
+gensty/__pycache__
