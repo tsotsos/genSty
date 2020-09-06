@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+"""gensty - Latex package generator ttf/otf and SMuFL."""
 import os
 import json
 import argparse
@@ -6,6 +8,11 @@ import shutil
 from datetime import datetime
 from fontTools import ttLib
 from fontTools.unicode import Unicode
+
+__author__ = 'Georgios Tsotsos'
+__email__ = 'tsotsos@gmail.com'
+__version__ = '0.1'
+
 
 def isfile(path):
     """ Detects if the given string is file."""

@@ -1,3 +1,3 @@
-__author__ = 'Georgios Tsotsos'
-__email__ = 'tsotsos@gmail.com'
-__version__ = '0.1'
+from .gensty import __version__
+from .gensty import __email__
+from .gensty import __author__
