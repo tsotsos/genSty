@@ -310,7 +310,6 @@ def createPackage(fontfiles, content):
     else:
         raise Exception("Error, cannot save files.")
 
-
 def main():
     parser = argparse.ArgumentParser(
         prog='genSty', description="LaTeX Style file generator for fonts")
@@ -335,8 +334,11 @@ def main():
 
     # Normalize and validate optional values
     optionals = validateNormalize(args)
-    # In case of "all" flag we create styles for every font in folder
 
+    # Handles different cases of command.
+    # In case of "all" flag we create styles for every font in folder. For both
+    # "all" true/false createPackage handles the package creation and
+    # createStyleFile the LaTeX style content.
     if args.all == True and isdir(args.path) == False:
         raise Exception(
             "Error! flag --all must be defined along with directory only!")
