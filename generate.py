@@ -281,24 +281,28 @@ def createStyleFile(font, author, description, version, smufl):
     header = preparePackage(font, author, description)
     latexCommands = createLaTexCommands(charcodes, font)
 
-    return header + latexCommands
+    return font,(header + latexCommands)
 
 
 def handleFolder(path, author, description, version, smufl):
     fonts = getFontsByType(path)
     result = []
+    fontfiles = []
     for font in fonts:
         sty = createStyleFile(font, author, description, version, smufl)
         result.append(sty)
-    return result
+        fontfiles.append(font)
+    return fontfiles,result
 
 
-def createPackage(font, content):
-    fontname = fontName(font)
-    if isinstance(content, list):
-        for style in content:
-            writePackage(fontname, style)
-    elif isinstance(content, str):
+def createPackage(fontfile, content):
+    if isinstance(fontfile, list) and isinstance(content, list):
+        for font in fontfile:
+            fontname = fontname(font)
+            for style in content:
+                writePackage(fontname, style)
+    elif isinstance(fontfile,str) and isinstance(content,str):
+        fontname = fontName(fontfile)
         writePackage(fontname, content)
     else:
         raise Exception("Error, cannot save files.")
@@ -325,20 +329,25 @@ def main():
 
     if isdir(args.path) == False and isfile(args.path) == False:
         raise Exception("Error! First argument must be file or directory.")
+
     # Normalize and validate optional values
     optionals = validateNormalize(args)
     # In case of "all" flag we create styles for every font in folder
+
     if args.all == True and isdir(args.path) == False:
         raise Exception(
             "Error! flag --all must be defined along with directory only!")
-    if args.all == True and isdir(args.path) == True:
-        result = handleFolder(
-            args.path, optionals["author"], optionals["description"], optionals["version"], args.smufl)
-    if args.all == False and isfile(args.path) == True:
-        result = createStyleFile(
-            args.path, optionals["author"], optionals["description"], optionals["version"], args.smufl)
-        createPackage(args.path, result)
 
+    if args.all == True and isdir(args.path) == True:
+        fontfile, result = handleFolder( args.path, optionals["author"],
+                              optionals["description"], optionals["version"],
+                              args.smufl)
+    if args.all == False and isfile(args.path) == True:
+        fontfile, result = createStyleFile( args.path, optionals["author"],
+                                optionals["description"], optionals["version"],
+                                args.smufl)
+
+    createPackage(fontfile, result)
 
 if __name__ == "__main__":
     main()
