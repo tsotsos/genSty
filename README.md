@@ -61,3 +61,9 @@ gensty.createPackage(fontfiles,result)
 
 #that's it GenSty will create one folder for each font with sty and font files to be included directly in any LaTeX document.
 ```
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+
+## License
+[GPLv2](LICENSE)
