@@ -9,26 +9,29 @@ import codecs
 __version__ = '0.1'
 __author__ = 'Georgios Tsotsos'
 
-def isfile (path):
+
+def isfile(path):
     """ Detects if the given string is file."""
     if os.path.isfile(path):
         return True
     return False
 
-def isdir (path):
+
+def isdir(path):
     """ Detects if the given string is directory."""
     if os.path.isdir(path):
         return True
     return False
 
 
-def findByExt(path,ext):
+def findByExt(path, ext):
     """Finds file by extension. Returns list."""
     files = []
     for file in os.listdir(path):
         if file.endswith("."+ext):
             files.append(os.path.join(path, file))
     return files
+
 
 def checkJson(path):
     """Defines if a file exists and its json."""
@@ -38,20 +41,22 @@ def checkJson(path):
         return False
     return True
 
+
 def getFontsByType(path):
     """Gets supported fonts by file extesion in a given folder."""
     files = []
-    fontExt = ["otf","ttf"]
+    fontExt = ["otf", "ttf"]
     for ext in fontExt:
-        fonts = findByExt(path,ext)
-        if not isinstance(fonts,list):
+        fonts = findByExt(path, ext)
+        if not isinstance(fonts, list):
             continue
         for font in fonts:
             files.append(font)
 
     return files
 
-def fontName( fontfile ):
+
+def fontName(fontfile):
     """Get the name from the font's names table.
     Customized function, original retrieved from: https://bit.ly/3lS4nMO
     """
@@ -66,11 +71,12 @@ def fontName( fontfile ):
                 if name:
                     break
     font.close()
-    #TODO: test for issues with multiple fonts
+    # TODO: test for issues with multiple fonts
     name = name.decode('utf-8')
-    return name.replace(" ","")
+    return name.replace(" ", "")
 
-def fontCodepoints( fontfile ):
+
+def fontCodepoints(fontfile):
     """Creates a dict of codepoints and names for every character/symbol in the
     given font."""
     font = ttLib.TTFont(fontfile)
@@ -87,40 +93,44 @@ def fontCodepoints( fontfile ):
 
 def latexFriendlyName(s):
     """Oneliner to return normalized name for LaTeX Style package."""
-    return(" ".join(x.capitalize() for x in s.split(" ")).replace(" ","").replace("-",""))
+    return(" ".join(x.capitalize() for x in s.split(" ")).replace(" ", "").replace("-", ""))
 
-def fontNormalize( charcodes, private = False, excluded = []):
+
+def fontNormalize(charcodes, private=False, excluded=[]):
     """Accepts list of tuples with charcodes and codepoints and returns
     names and charcodes."""
-    if not isinstance(charcodes,list):
+    if not isinstance(charcodes, list):
         return False
     result = []
     for charcode, codepoint in charcodes:
         description = latexFriendlyName(Unicode[charcode])
         curcodepoint = str(codepoint)
-        if private == True and charcode >= 0xE000 and charcode <=0xF8FF:
+        if private == True and charcode >= 0xE000 and charcode <= 0xF8FF:
             continue
         if description in excluded:
             continue
-        result.append((curcodepoint[1:],description))
+        result.append((curcodepoint[1:], description))
     return result
 
-def glyphnameParse( glyphnameFile ):
+
+def glyphnameParse(glyphnameFile):
     """Parses glyphname file according w3c/smufl reference."""
     result = []
-    with open( glyphnameFile ) as json_file:
+    with open(glyphnameFile) as json_file:
         gnames = json.load(json_file)
         for gname in gnames:
             codepoint = gnames[gname]["codepoint"].split("+")[1]
-            result.append((codepoint,gname))
+            result.append((codepoint, gname))
     return result
 
-def defaultDescription(fontname,version):
+
+def defaultDescription(fontname, version):
     """Creates default description text based on name and version."""
     currentDate = datetime.today().strftime('%Y-%m-%d')
     return "%s %s LaTeX package for %s" % (currentDate, version, fontname)
 
-def header(fontname,author):
+
+def header(fontname, author):
     """Creates LaTeX Style header."""
     headstr = """
 %% %s Font Package
@@ -131,16 +141,18 @@ def header(fontname,author):
 %%%% of the LaTeX Project Public License Distributed from CTAN archives
 %%%% in directory macros/latex/base/lppl.txt.
 %%
-""" % (fontname,author)
+""" % (fontname, author)
     return headstr
 
-def packageName(fontname,description):
+
+def packageName(fontname, description):
     """Creates LaTeX package descriotn and header."""
     pkgstr = """
 \\ProvidesPackage{%s}
   [%s]
 """ % (fontname, description)
     return pkgstr
+
 
 def packageRequirements(requirements):
     """Creates LaTeX package requirements. By default fontspec is nessessary."""
@@ -153,22 +165,26 @@ def packageRequirements(requirements):
         reqstr += "\\RequirePackage{"+pkg+"}"
     return reqstr
 
-def fontNameNormalize(fontname,prefix = True):
+
+def fontNameNormalize(fontname, prefix=True):
     """Removes spaces and forces lowercase for font name, by default adds prefix
     'fnt' so we can avoid issues with simmilar names in other LaTeX packages."""
-    result = fontname.lower().replace(" ","")
+    result = fontname.lower().replace(" ", "")
     if prefix == True:
         return "fnt"+result
     return result
 
-def importFont(fontname,fontfile,path):
+
+def importFont(fontname, fontfile, path):
     """Creates LaTeX definitions for importing a font."""
     return "\\newfontfamily\\"+fontNameNormalize(fontname)+"{"+fontfile+"}[Path=./"+path+"/]"
+
 
 def createCommandNames(fontname):
     """Creates command name, definition and command."""
     defCmd = "Define"+fontname
-    return (defCmd,fontname)
+    return (defCmd, fontname)
+
 
 def initCommands(defCommand, command, cmdPrefix):
     """Provides initialization commands for font."""
@@ -180,10 +196,11 @@ def initCommands(defCommand, command, cmdPrefix):
 """ % (defCommand, cmdPrefix, command, cmdPrefix, cmdPrefix)
     return cmdStr
 
+
 def preparePackage(fontfile, author, description, requirements=[]):
     """Prepares LaTeX package header, initialization commands and requirements."""
     result = ""
-    #command names, normalized and definitions.
+    # command names, normalized and definitions.
     #fontNormalized = fontNameNormalize(fontname)
     fontname = fontName(fontfile)
     cmds = createCommandNames(fontname)
@@ -196,11 +213,13 @@ def preparePackage(fontfile, author, description, requirements=[]):
     # creates package requirements.
     result += "\n" + packageRequirements(requirements)
     # imports font (uses fontspec).
-    result += "\n" + importFont(fontname,filename,filepath)
+    result += "\n" + importFont(fontname, filename, filepath)
     # creates intial commands.
-    result += "\n" + initCommands(cmds[0],cmds[1],fontNameNormalize(fontname,True))
+    result += "\n" + \
+        initCommands(cmds[0], cmds[1], fontNameNormalize(fontname, True))
 
     return result
+
 
 def validateNormalize(arguments):
     """Validates and normalizes provided arguments."""
@@ -211,12 +230,13 @@ def validateNormalize(arguments):
     optionals["author"] = arguments.author
 
     if optionals["version"] == None:
-        optionals["version"]= "v.0.1"
+        optionals["version"] = "v.0.1"
     if optionals["author"] == None:
         optionals["author"] = __author__
     return optionals
 
-def retrieveCodes( filepath, smufl):
+
+def retrieveCodes(filepath, smufl):
     """Retrieves the codepoints and symbols for the desired font, handles
     differently if its smufl font."""
     if smufl != None and checkJson(smufl) == False:
@@ -225,42 +245,46 @@ def retrieveCodes( filepath, smufl):
         return glyphnameParse(smufl)
     else:
         charcodes = fontCodepoints(filepath)
-        charcodes = fontNormalize(charcodes,excluded=["????"])
-        if isinstance(charcodes,list):
+        charcodes = fontNormalize(charcodes, excluded=["????"])
+        if isinstance(charcodes, list):
             return charcodes
         else:
             raise Exception("Uknown font parse error")
 
-def createLaTexCommands( charcodes, fontfile ):
+
+def createLaTexCommands(charcodes, fontfile):
     """Generates LaTeX commands for each char code."""
-    if not isinstance(charcodes,list):
+    if not isinstance(charcodes, list):
         return False
     fontname = fontName(fontfile)
     cmds = createCommandNames(fontname)
     commands = "\n"
-    for codepoint,desc in charcodes:
+    for codepoint, desc in charcodes:
         commands += "\\"+cmds[0]+"{"+desc+"}{\\char\""+codepoint+"\\relax}\n"
     if commands == "\n":
         raise Exception("Error. Cannot create LaTeX style commands")
     return commands
 
-def writePackage( fontname, code ):
+
+def writePackage(fontname, code):
     """Writes Style file."""
     sty = open(fontname+".sty", "w")
     sty.write(code)
     sty.close()
 
-def createStyleFile (font, author, description, version, smufl):
+
+def createStyleFile(font, author, description, version, smufl):
     """ Creates LaTeX Style file."""
-    charcodes = retrieveCodes(font,smufl)
+    charcodes = retrieveCodes(font, smufl)
     if description == None:
-        description = defaultDescription(fontName(font),version)
-    header = preparePackage(font,author,description)
-    latexCommands = createLaTexCommands(charcodes,font)
+        description = defaultDescription(fontName(font), version)
+    header = preparePackage(font, author, description)
+    latexCommands = createLaTexCommands(charcodes, font)
 
     return header + latexCommands
 
-def handleFolder(path,author,description,version,smufl):
+
+def handleFolder(path, author, description, version, smufl):
     fonts = getFontsByType(path)
     result = []
     for font in fonts:
@@ -268,26 +292,35 @@ def handleFolder(path,author,description,version,smufl):
         result.append(sty)
     return result
 
-def createPackage ( font, content ):
+
+def createPackage(font, content):
     fontname = fontName(font)
-    if isinstance(content,list):
+    if isinstance(content, list):
         for style in content:
             writePackage(fontname, style)
-    elif isinstance(content,str):
+    elif isinstance(content, str):
         writePackage(fontname, content)
     else:
         raise Exception("Error, cannot save files.")
 
+
 def main():
-    parser = argparse.ArgumentParser(prog='genFontSty',description="LaTeX Style file generator for fonts")
-    parser.add_argument('--version','-v', action='version', version='%(prog)s '+ __version__)
-    parser.add_argument('path',help='Font(s) path. It can be either a directory in case of multiple fonts or file path.')
-    parser.add_argument('--all','-a', action="store_true",help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory')
-    parser.add_argument('--smufl','-s', type=str,help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory based on glyphnames provided.')
-    parser.add_argument('--name','-n', type=str,help='In case of single font provided forces specified name. Otherwise %(prog)s detects the name from file.')
-    parser.add_argument('--description', type=str,help='LaTeX Style package description. It is ignored in case of --all flag.')
-    parser.add_argument('--author', type=str,help='Author\'s name.')
-    parser.add_argument('--ver', type=str,help='LaTeX package version.')
+    parser = argparse.ArgumentParser(
+        prog='genSty', description="LaTeX Style file generator for fonts")
+    parser.add_argument('--version', '-v', action='version',
+                        version='%(prog)s ' + __version__)
+    parser.add_argument('path',
+                        help='Font(s) path. It can be either a directory in case of multiple fonts or file path.')
+    parser.add_argument('--all', '-a', action="store_true",
+                        help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory')
+    parser.add_argument('--smufl', '-s', type=str,
+                        help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory based on glyphnames provided.')
+    parser.add_argument('--name', '-n', type=str,
+                        help='In case of single font provided forces specified name. Otherwise %(prog)s detects the name from file.')
+    parser.add_argument('--description', type=str,
+                        help='LaTeX Style package description. It is ignored in case of --all flag.')
+    parser.add_argument('--author', type=str, help='Author\'s name.')
+    parser.add_argument('--ver', type=str, help='LaTeX package version.')
     args = parser.parse_args()
 
     if isdir(args.path) == False and isfile(args.path) == False:
@@ -296,12 +329,16 @@ def main():
     optionals = validateNormalize(args)
     # In case of "all" flag we create styles for every font in folder
     if args.all == True and isdir(args.path) == False:
-        raise Exception("Error! flag --all must be defined along with directory only!")
+        raise Exception(
+            "Error! flag --all must be defined along with directory only!")
     if args.all == True and isdir(args.path) == True:
-        result = handleFolder(args.path,optionals["author"],optionals["description"],optionals["version"],args.smufl)
+        result = handleFolder(
+            args.path, optionals["author"], optionals["description"], optionals["version"], args.smufl)
     if args.all == False and isfile(args.path) == True:
-        result = createStyleFile(args.path,optionals["author"],optionals["description"],optionals["version"],args.smufl)
-        createPackage(args.path,result)
+        result = createStyleFile(
+            args.path, optionals["author"], optionals["description"], optionals["version"], args.smufl)
+        createPackage(args.path, result)
+
 
 if __name__ == "__main__":
-   main()
+    main()
