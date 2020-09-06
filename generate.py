@@ -163,7 +163,7 @@ def fontNameNormalize(fontname,prefix = True):
 
 def importFont(fontname,fontfile,path):
     """Creates LaTeX definitions for importing a font."""
-    return "\\newfontfamily\\"+fontname+"{"+fontfile+"}[Path=./"+path+"]"
+    return "\\newfontfamily\\"+fontNameNormalize(fontname)+"{"+fontfile+"}[Path=./"+path+"/]"
 
 def createCommandNames(fontname):
     """Creates command name, definition and command."""
@@ -268,7 +268,8 @@ def handleFolder(path,author,description,version,smufl):
         result.append(sty)
     return result
 
-def createPackage ( fontname, content ):
+def createPackage ( font, content ):
+    fontname = fontName(font)
     if isinstance(content,list):
         for style in content:
             writePackage(fontname, style)
@@ -297,26 +298,10 @@ def main():
     if args.all == True and isdir(args.path) == False:
         raise Exception("Error! flag --all must be defined along with directory only!")
     if args.all == True and isdir(args.path) == True:
-        handleFolder(args.path,optionals["author"],optionals["description"],optionals["version"],args.smufl)
+        result = handleFolder(args.path,optionals["author"],optionals["description"],optionals["version"],args.smufl)
     if args.all == False and isfile(args.path) == True:
         result = createStyleFile(args.path,optionals["author"],optionals["description"],optionals["version"],args.smufl)
-        createPackage(fontName(args.path),result)
+        createPackage(args.path,result)
 
 if __name__ == "__main__":
    main()
-
-sys.exit()
-commands = "\n"
-commandsText = "\n"
-with open('glyphnames.json') as json_file:
-    gnames = json.load(json_file)
-    for gname in gnames:
-        codepoint = gnames[gname]["codepoint"].split("+")[1]
-        commands += "\\DefineBravura{"+gname+"}{\\char\""+codepoint+"\\relax}\n"
-        commandsText += "\\DefineBravuraText{"+gname+"}{\\char\""+codepoint+"\\relax}\n"
-
-
-sty2 = open("bravuraText.sty", "a")
-sty2.write(commandsText)
-sty2.close()
-
