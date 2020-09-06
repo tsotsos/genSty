@@ -244,7 +244,13 @@ def createLaTexCommands( charcodes, fontfile ):
         raise Exception("Error. Cannot create LaTeX style commands")
     return commands
 
-def createPackage (font, author, description, version, smufl):
+def writePackage( fontname, code ):
+    """Writes Style file."""
+    sty = open(fontname+".sty", "w")
+    sty.write(code)
+    sty.close()
+
+def createStyleFile (font, author, description, version, smufl):
     """ Creates LaTeX Style file."""
     charcodes = retrieveCodes(font,smufl)
     if description == None:
@@ -258,9 +264,18 @@ def handleFolder(path,author,description,version,smufl):
     fonts = getFontsByType(path)
     result = []
     for font in fonts:
-        sty = createPackage(font, author, description, version, smufl)
+        sty = createStyleFile(font, author, description, version, smufl)
         result.append(sty)
-    print (result[0])
+    return result
+
+def createPackage ( fontname, content ):
+    if isinstance(content,list):
+        for style in content:
+            writePackage(fontname, style)
+    elif isinstance(content,str):
+        writePackage(fontname, content)
+    else:
+        raise Exception("Error, cannot save files.")
 
 def main():
     parser = argparse.ArgumentParser(prog='genFontSty',description="LaTeX Style file generator for fonts")
@@ -284,7 +299,8 @@ def main():
     if args.all == True and isdir(args.path) == True:
         handleFolder(args.path,optionals["author"],optionals["description"],optionals["version"],args.smufl)
     if args.all == False and isfile(args.path) == True:
-        createPackage(args.path,optionals["author"],optionals["description"],optionals["version"],args.smufl)
+        result = createStyleFile(args.path,optionals["author"],optionals["description"],optionals["version"],args.smufl)
+        createPackage(fontName(args.path),result)
 
 if __name__ == "__main__":
    main()
@@ -299,9 +315,6 @@ with open('glyphnames.json') as json_file:
         commands += "\\DefineBravura{"+gname+"}{\\char\""+codepoint+"\\relax}\n"
         commandsText += "\\DefineBravuraText{"+gname+"}{\\char\""+codepoint+"\\relax}\n"
 
-sty = open("bravura.sty", "a")
-sty.write(commands)
-sty.close()
 
 sty2 = open("bravuraText.sty", "a")
 sty2.write(commandsText)
