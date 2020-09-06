@@ -2,10 +2,11 @@ import os
 import json
 import argparse
 import sys
+import shutil
 from datetime import datetime
 from fontTools import ttLib
 from fontTools.unicode import Unicode
-import codecs
+
 __version__ = '0.1'
 __author__ = 'Georgios Tsotsos'
 
@@ -32,6 +33,10 @@ def findByExt(path, ext):
             files.append(os.path.join(path, file))
     return files
 
+def createDir(dir):
+    if os.path.exists(dir):
+        shutil.rmtree(dir)
+    os.makedirs(dir)
 
 def checkJson(path):
     """Defines if a file exists and its json."""
@@ -303,9 +308,11 @@ def createPackage(fontfiles, content):
         for font in fontfiles:
             fontname = fontName(font)
             for style in content:
-                writePackage(fontname, style)
+                createDir(fontname)
+                writePackage(fontname +"/"+fontname, style)
     elif isinstance(fontfiles, str) and isinstance(content, str):
         fontname = fontName(fontfiles)
+        createDir(fontname)
         writePackage(fontname, content)
     else:
         raise Exception("Error, cannot save files.")
