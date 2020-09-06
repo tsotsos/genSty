@@ -301,19 +301,20 @@ def handleFolder(path, author, description, version, smufl):
         fontfiles.append(font)
     return fontfiles, result
 
+def singlePackage(fontfile,content):
+    """Creates a single package folder and its files."""
+    fontname = fontName(fontfile)
+    createDir(fontname)
+    writePackage(fontname+"/"+fontname, content)
 
 def createPackage(fontfiles, content):
     """Creates the final package with style and font files."""
     if isinstance(fontfiles, list) and isinstance(content, list):
         for font in fontfiles:
-            fontname = fontName(font)
             for style in content:
-                createDir(fontname)
-                writePackage(fontname +"/"+fontname, style)
+                singlePackage(font,style)
     elif isinstance(fontfiles, str) and isinstance(content, str):
-        fontname = fontName(fontfiles)
-        createDir(fontname)
-        writePackage(fontname, content)
+        singlePackage(fontfiles,content)
     else:
         raise Exception("Error, cannot save files.")
 
