@@ -28,9 +28,12 @@ def isFontPath ( path ):
 def findByExt(path, ext):
     """Finds file by extension. Returns list."""
     files = []
-    for file in os.listdir(path):
-        if file.endswith("."+ext):
-            files.append(os.path.join(path, file))
+    if os.path.isfile(path):
+        files.append(path)
+    else:
+        for file in os.listdir(path):
+            if file.endswith("."+ext):
+                files.append(os.path.join(path, file))
     return files
 
 def createDir(dir):
@@ -212,7 +215,8 @@ def setupVariables(arguments):
 
     if not isinstance(fonts, list):
         raise Exception("Error could not retrieve fonts")
-
+    print(fonts)
+    sys.exit()
     # font specific data.
     for font in fonts:
         name = fontName(font)
@@ -220,8 +224,8 @@ def setupVariables(arguments):
         fontnames[name] = font
         fontnamesNormalized[name] = fontNameNormalize(name)
         descriptions[name] = defaultDescription(name,version)
-        commands[name]["define"] = defcmd
-        commands[name]["command"] = cmd
+#        commands[name]["define"] = defcmd
+  #      commands[name]["command"] = cmd
 
     if len(fontnames) == 0:
         raise Exception("Error cannot retrieve fonts")
