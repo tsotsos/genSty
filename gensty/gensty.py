@@ -13,19 +13,16 @@ __author__ = 'Georgios Tsotsos'
 __email__ = 'tsotsos@gmail.com'
 __version__ = '0.1.5'
 
-
-def isfile(path):
-    """ Detects if the given string is file."""
+def isFontPath ( path ):
+    """ Checks if the path is file or folder. In case of folder returns all
+    included fonts."""
     if os.path.isfile(path):
+        #TODO: verify file type.
         return True
-    return False
-
-
-def isdir(path):
-    """ Detects if the given string is directory."""
-    if os.path.isdir(path):
-        return True
-    return False
+    elif os.path.isdir(path):
+        return False
+    else:
+        raise Exception("Error. Path must be a valid file or folder.")
 
 
 def findByExt(path, ext):
@@ -40,6 +37,7 @@ def createDir(dir):
     if os.path.exists(dir):
         shutil.rmtree(dir)
     os.makedirs(dir)
+
 
 def checkJson(path):
     """Defines if a file exists and its json."""
@@ -137,6 +135,7 @@ def defaultDescription(fontname, version):
     currentDate = datetime.today().strftime('%Y-%m-%d')
     return "%s %s LaTeX package for %s" % (currentDate, version, fontname)
 
+
 def packageRequirements(requirements):
     """Creates LaTeX package requirements. By default fontspec is nessessary."""
     reqstr = "\\RequirePackage{fontspec}"
@@ -148,6 +147,7 @@ def packageRequirements(requirements):
         reqstr += "\\RequirePackage{"+pkg+"}"
     return reqstr
 
+
 def fontNameNormalize(fontname, prefix=True):
     """Removes spaces and forces lowercase for font name, by default adds prefix
     'fnt' so we can avoid issues with simmilar names in other LaTeX packages."""
@@ -156,10 +156,12 @@ def fontNameNormalize(fontname, prefix=True):
         return "fnt"+result
     return result
 
+
 def createCommandNames(fontname):
     """Creates command name, definition and command."""
     defCmd = "Define"+fontname
     return (defCmd, fontname)
+
 
 def replace_content(dict_replace, target):
     """Based on dict, replaces key with the value on the target."""
@@ -169,6 +171,7 @@ def replace_content(dict_replace, target):
 
     return target
 
+
 def prepareStyle(fontfile, author, description, requirements=[]):
     """Prepares LaTeX package header, initialization commands and requirements."""
     genstyPath = os.path.abspath(os.path.dirname(__file__))
@@ -177,12 +180,12 @@ def prepareStyle(fontfile, author, description, requirements=[]):
     defcmd, cmd = createCommandNames(fontname)
     data = {
         'fontname': fontname+" Font",
-        'packageName': fontNameNormalize(fontname,False),
-        'year' : datetime.today().strftime('%Y'),
+        'packageName': fontNameNormalize(fontname, False),
+        'year': datetime.today().strftime('%Y'),
         'author': author,
-        'description':description,
-        'fontfile' : fontfile,
-        'fontspath' : "fonts",
+        'description': description,
+        'fontfile': fontfile,
+        'fontspath': "fonts",
         'fontfamily': fontNameNormalize(fontname),
         'fntidentifier': fontNameNormalize(fontname),
         'defcommand': defcmd,
@@ -191,22 +194,60 @@ def prepareStyle(fontfile, author, description, requirements=[]):
 
     with open(genstyPath+"/template.sty") as templateFile:
         template = templateFile.read()
-        output = replace_content(data,template)
+        output = replace_content(data, template)
     return output
 
-def validateNormalize(arguments):
-    """Validates and normalizes provided arguments."""
-    optionals = dict()
-    optionals["name"] = arguments.name
-    optionals["version"] = arguments.ver
-    optionals["description"] = arguments.description
-    optionals["author"] = arguments.author
+def setupVariables(arguments):
+    """ Produces usable data for  font(s) and validates arguments. Used to
+    create the final Style package."""
+    fontnames = {}
+    fontnamesNormalized = {}
+    descriptions = {}
+    commands = {}
 
-    if optionals["version"] == None:
-        optionals["version"] = "v.0.1"
-    if optionals["author"] == None:
-        optionals["author"] = __author__
-    return optionals
+    # optional arguments.
+    version, author = varsOptionalValidate(arguments)
+    path  = isFontPath(arguments.path)
+    fonts = getFontsByType(arguments.path)
+
+    if not isinstance(fonts, list):
+        raise Exception("Error could not retrieve fonts")
+
+    # font specific data.
+    for font in fonts:
+        name = fontName(font)
+        defcmd, cmd = createCommandNames(name)
+        fontnames[name] = font
+        fontnamesNormalized[name] = fontNameNormalize(name)
+        descriptions[name] = defaultDescription(name,version)
+        commands[name]["define"] = defcmd
+        commands[name]["command"] = cmd
+
+    if len(fontnames) == 0:
+        raise Exception("Error cannot retrieve fonts")
+
+    return {
+            'isdir': path,
+            'year': datetime.today().strftime('%Y'),
+            'author': author,
+            'fontnames': fontnames,
+            'fontnamesNormalized': fontnamesNormalized,
+            'descriptions': descriptions,
+            'commands': commands,
+            'totalFonts': len(fonts),
+    }
+
+def varsOptionalValidate(arguments):
+    """Validates and ensure existance of optional arguments."""
+    version = arguments.ver
+    author  = arguments.author
+
+    if version == None:
+        version  = "v.0.1"
+    if author == None:
+        author = __author__
+
+    return version,author
 
 
 def retrieveCodes(filepath, smufl):
@@ -252,7 +293,7 @@ def createStyleFile(font, author, description, version, smufl):
     if description == None:
         description = defaultDescription(fontName(font), version)
     header = prepareStyle(font, author, description)
-    latexCommands = "" #createLaTexCommands(charcodes, font)
+    latexCommands = createLaTexCommands(charcodes, font)
     return font, (header + latexCommands)
 
 
@@ -268,25 +309,28 @@ def handleFolder(path, author, description, version, smufl):
         fontfiles.append(font)
     return fontfiles, result
 
-def singlePackage(fontfile,content):
+
+def singlePackage(fontfile, content):
     """Creates a single package folder and its files."""
     fontname = fontName(fontfile)
     createDir(fontname)
     packageFontsPath = fontname + "/fonts"
     createDir(packageFontsPath)
-    shutil.copy2(fontfile,packageFontsPath)
+    shutil.copy2(fontfile, packageFontsPath)
     writePackage(fontname+"/"+fontname, content)
+
 
 def createPackage(fontfiles, content):
     """Creates the final package with style and font files."""
     if isinstance(fontfiles, list) and isinstance(content, list):
         for font in fontfiles:
             for style in content:
-                singlePackage(font,style)
+                singlePackage(font, style)
     elif isinstance(fontfiles, str) and isinstance(content, str):
-        singlePackage(fontfiles,content)
+        singlePackage(fontfiles, content)
     else:
         raise Exception("Error, cannot save files.")
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -307,12 +351,10 @@ def main():
     parser.add_argument('--ver', type=str, help='LaTeX package version.')
     args = parser.parse_args()
 
-    if isdir(args.path) == False and isfile(args.path) == False:
-        raise Exception("Error! First argument must be file or directory.")
-
-    # Normalize and validate optional values
-    optionals = validateNormalize(args)
-
+    # Arguments preperation for use.
+    arguments = setupVariables(args)
+    print(arguments)
+    sys.exit()
     # Handles different cases of command.
     # In case of "all" flag we create styles for every font in folder. For both
     # "all" true/false createPackage handles the package creation and
@@ -332,5 +374,7 @@ def main():
     # Create LaTeX package(s).
     # createPackage(fontfiles, result)
     print(result)
+
+
 if __name__ == "__main__":
     main()
