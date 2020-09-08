@@ -28,8 +28,11 @@ def isFontPath ( path ):
 def findByExt(path, ext):
     """Finds file by extension. Returns list."""
     files = []
-    if os.path.isfile(path):
-        files.append(path)
+    if os.path.isfile(path) == True:
+        if checkExtension(path,ext) == True:
+            files.append(path)
+        else:
+            return False
     else:
         for file in os.listdir(path):
             if file.endswith("."+ext):
@@ -203,10 +206,6 @@ def prepareStyle(fontfile, author, description, requirements=[]):
 def setupVariables(arguments):
     """ Produces usable data for  font(s) and validates arguments. Used to
     create the final Style package."""
-    fontnames = {}
-    fontnamesNormalized = {}
-    descriptions = {}
-    commands = {}
 
     # optional arguments.
     version, author = varsOptionalValidate(arguments)
@@ -215,29 +214,30 @@ def setupVariables(arguments):
 
     if not isinstance(fonts, list):
         raise Exception("Error could not retrieve fonts")
-    print(fonts)
-    sys.exit()
     # font specific data.
+    fontnames = {}
     for font in fonts:
         name = fontName(font)
         defcmd, cmd = createCommandNames(name)
-        fontnames[name] = font
-        fontnamesNormalized[name] = fontNameNormalize(name)
-        descriptions[name] = defaultDescription(name,version)
-#        commands[name]["define"] = defcmd
-  #      commands[name]["command"] = cmd
+        tmpDict = {
+            'fontname'    : name,
+            'fontnameN'   : fontNameNormalize(name),
+            'fontpath'    : font,
+            'fontbase'    : os.path.basename(font),
+            'description' : defaultDescription(name,version),
+            'definition'  : defcmd,
+            'command'     : cmd
+        }
+        fontnames[name] = tmpDict
 
     if len(fontnames) == 0:
         raise Exception("Error cannot retrieve fonts")
 
     return {
-            'isdir': path,
+            'isfile': path,
             'year': datetime.today().strftime('%Y'),
             'author': author,
             'fontnames': fontnames,
-            'fontnamesNormalized': fontnamesNormalized,
-            'descriptions': descriptions,
-            'commands': commands,
             'totalFonts': len(fonts),
     }
 
@@ -357,7 +357,8 @@ def main():
 
     # Arguments preperation for use.
     arguments = setupVariables(args)
-    print(arguments)
+    import pprint
+    pprint.pprint(arguments)
     sys.exit()
     # Handles different cases of command.
     # In case of "all" flag we create styles for every font in folder. For both
