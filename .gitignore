@@ -5,3 +5,4 @@ gensty.egg-info
 __pycache__
 .ropeproject
 gensty/__pycache__
+*.whl
