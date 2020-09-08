@@ -2,16 +2,16 @@
 """gensty - Latex package generator ttf/otf and SMuFL."""
 import os
 import json
-import argparse
 import sys
 import shutil
+import argparse
 from datetime import datetime
 from fontTools import ttLib
 from fontTools.unicode import Unicode
 
 __author__ = 'Georgios Tsotsos'
 __email__ = 'tsotsos@gmail.com'
-__version__ = '0.1'
+__version__ = '0.1.5'
 
 
 def isfile(path):
@@ -367,7 +367,5 @@ def main():
                                             args.smufl)
     # Create LaTeX package(s).
     createPackage(fontfiles, result)
-
-
 if __name__ == "__main__":
     main()
