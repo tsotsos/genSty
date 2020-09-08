@@ -1,0 +1,20 @@
+% [fontname] Package
+%
+% (c) [year] [author]
+%
+%% This program can be redistributed and/or modified under the terms
+%% of the LaTeX Project Public License Distributed from CTAN archives
+%% in directory macros/latex/base/lppl.txt.
+%
+
+\ProvidesPackage{[packageName]}
+  [[description]]
+
+\RequirePackage{fontspec}
+\newfontfamily\[fontfamily]{[fontfile]}[Path=./[fontspath]/]
+
+  \newcommand{\[defcommand]}[2]{%
+   \expandafter\newcommand\csname [fntidentifier]#1\endcsname{#2}%
+}
+\newcommand{\[command]}[1]{\makeatletter \[fontfamily] \csname [fntidentifier]#1\endcsname \reset@font\makeatother}
+
