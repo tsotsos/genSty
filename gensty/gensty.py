@@ -137,31 +137,6 @@ def defaultDescription(fontname, version):
     currentDate = datetime.today().strftime('%Y-%m-%d')
     return "%s %s LaTeX package for %s" % (currentDate, version, fontname)
 
-
-def header(fontname, author):
-    """Creates LaTeX Style header."""
-    headstr = """
-%% %s Font Package
-%%
-%% (c) 2020 %s
-%%
-%%%% This program can be redistributed and/or modified under the terms
-%%%% of the LaTeX Project Public License Distributed from CTAN archives
-%%%% in directory macros/latex/base/lppl.txt.
-%%
-""" % (fontname, author)
-    return headstr
-
-
-def packageName(fontname, description):
-    """Creates LaTeX package descriotn and header."""
-    pkgstr = """
-\\ProvidesPackage{%s}
-  [%s]
-""" % (fontname, description)
-    return pkgstr
-
-
 def packageRequirements(requirements):
     """Creates LaTeX package requirements. By default fontspec is nessessary."""
     reqstr = "\\RequirePackage{fontspec}"
@@ -173,7 +148,6 @@ def packageRequirements(requirements):
         reqstr += "\\RequirePackage{"+pkg+"}"
     return reqstr
 
-
 def fontNameNormalize(fontname, prefix=True):
     """Removes spaces and forces lowercase for font name, by default adds prefix
     'fnt' so we can avoid issues with simmilar names in other LaTeX packages."""
@@ -182,52 +156,43 @@ def fontNameNormalize(fontname, prefix=True):
         return "fnt"+result
     return result
 
-
-def importFont(fontname, fontfile, path):
-    """Creates LaTeX definitions for importing a font."""
-    return "\\newfontfamily\\"+fontNameNormalize(fontname)+"{"+fontfile+"}[Path=./"+path+"/]"
-
-
 def createCommandNames(fontname):
     """Creates command name, definition and command."""
     defCmd = "Define"+fontname
     return (defCmd, fontname)
 
+def replace_content(dict_replace, target):
+    """Based on dict, replaces key with the value on the target."""
 
-def initCommands(defCommand, command, cmdPrefix):
-    """Provides initialization commands for font."""
-    cmdStr = """
-\\newcommand{\\%s}[2]{%%
-  \\expandafter\\newcommand\\csname %s#1\\endcsname{#2}%%
-}
-\\newcommand{\\%s}[1]{\\makeatletter \\%s \\csname %s#1\\endcsname \\reset@font\\makeatother}
-""" % (defCommand, cmdPrefix, command, cmdPrefix, cmdPrefix)
-    return cmdStr
+    for check, replacer in list(dict_replace.items()):
+        target = target.replace("["+check+"]", replacer)
 
+    return target
 
-def preparePackage(fontfile, author, description, requirements=[]):
+def prepareStyle(fontfile, author, description, requirements=[]):
     """Prepares LaTeX package header, initialization commands and requirements."""
-    result = ""
-    # command names, normalized and definitions.
-    #fontNormalized = fontNameNormalize(fontname)
+    genstyPath = os.path.abspath(os.path.dirname(__file__))
     fontname = fontName(fontfile)
-    cmds = createCommandNames(fontname)
-    filename = os.path.basename(fontfile)
-    filepath = os.path.dirname(fontfile)
-    # creates header commends.
-    result = header(fontname, author)
-    # creates package name definition.
-    result += "\n" + packageName(fontname, description)
-    # creates package requirements.
-    result += "\n" + packageRequirements(requirements)
-    # imports font (uses fontspec).
-    result += "\n" + importFont(fontname, filename, filepath)
-    # creates intial commands.
-    result += "\n" + \
-        initCommands(cmds[0], cmds[1], fontNameNormalize(fontname, True))
+    fontfile = os.path.basename(fontfile)
+    defcmd, cmd = createCommandNames(fontname)
+    data = {
+        'fontname': fontname+" Font",
+        'packageName': fontNameNormalize(fontname,False),
+        'year' : datetime.today().strftime('%Y'),
+        'author': author,
+        'description':description,
+        'fontfile' : fontfile,
+        'fontspath' : "fonts",
+        'fontfamily': fontNameNormalize(fontname),
+        'fntidentifier': fontNameNormalize(fontname),
+        'defcommand': defcmd,
+        'command': cmd,
+    }
 
-    return result
-
+    with open(genstyPath+"/template.sty") as templateFile:
+        template = templateFile.read()
+        output = replace_content(data,template)
+    return output
 
 def validateNormalize(arguments):
     """Validates and normalizes provided arguments."""
@@ -286,9 +251,8 @@ def createStyleFile(font, author, description, version, smufl):
     charcodes = retrieveCodes(font, smufl)
     if description == None:
         description = defaultDescription(fontName(font), version)
-    header = preparePackage(font, author, description)
-    latexCommands = createLaTexCommands(charcodes, font)
-
+    header = prepareStyle(font, author, description)
+    latexCommands = "" #createLaTexCommands(charcodes, font)
     return font, (header + latexCommands)
 
 
@@ -366,6 +330,7 @@ def main():
                                             optionals["description"], optionals["version"],
                                             args.smufl)
     # Create LaTeX package(s).
-    createPackage(fontfiles, result)
+    # createPackage(fontfiles, result)
+    print(result)
 if __name__ == "__main__":
     main()
