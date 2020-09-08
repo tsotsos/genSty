@@ -41,7 +41,7 @@ def createDir(dir):
 
 def checkJson(path):
     """Defines if a file exists and its json."""
-    if not isfile(path):
+    if not os.path.isfile(path):
         return False
     if not path.endswith(".json"):
         return False
