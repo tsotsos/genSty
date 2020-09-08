@@ -10,7 +10,6 @@ from gensty import __version__
 from gensty import __author__
 from gensty import __email__
 
-
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
@@ -19,6 +18,7 @@ setup(
     version=__version__,
     description='LaTex style generator for ttf/otf fonts. Supports Smufl.',
     long_description= readme,
+    long_description_content_type='text/markdown',
     author=__author__,
     author_email=__email__,
     url='https://github.com/tsotsos/gensty',
