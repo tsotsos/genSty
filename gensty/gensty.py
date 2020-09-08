@@ -39,11 +39,11 @@ def createDir(dir):
     os.makedirs(dir)
 
 
-def checkJson(path):
+def checkExtension(path, ext):
     """Defines if a file exists and its json."""
     if not os.path.isfile(path):
         return False
-    if not path.endswith(".json"):
+    if not path.endswith("."+ext):
         return False
     return True
 
@@ -253,9 +253,9 @@ def varsOptionalValidate(arguments):
 def retrieveCodes(filepath, smufl):
     """Retrieves the codepoints and symbols for the desired font, handles
     differently if its smufl font."""
-    if smufl != None and checkJson(smufl) == False:
+    if smufl != None and checkExtension(smufl,"json") == False:
         raise Exception("Error! Please provide a valid smufl json file")
-    elif smufl != None and checkJson(smufl) == True:
+    elif smufl != None and checkExtension(smufl,"json") == True:
         return glyphnameParse(smufl)
     else:
         charcodes = fontCodepoints(filepath)
