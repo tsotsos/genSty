@@ -12,7 +12,7 @@ from fontTools.unicode import Unicode
 __author__ = 'Georgios Tsotsos'
 __email__ = 'tsotsos@gmail.com'
 __version__ = '0.1.5'
-__supported_fonts__ = ['ttf','otf']
+__supported_fonts__ = ['ttf', 'otf']
 
 
 def _latexFriendlyName(s):
@@ -20,11 +20,11 @@ def _latexFriendlyName(s):
     return(" ".join(x.capitalize() for x in s.split(" ")).replace(" ", "").replace("-", ""))
 
 
-def _isFontPath ( path ):
+def _isFontPath(path):
     """ Checks if the path is file or folder. In case of folder returns all
     included fonts."""
     if os.path.isfile(path):
-        #TODO: verify file type.
+        # TODO: verify file type.
         return True
     elif os.path.isdir(path):
         return False
@@ -36,7 +36,7 @@ def _findByExt(path, ext):
     """Finds file by extension. Returns list."""
     files = []
     if os.path.isfile(path) == True:
-        if _checkExtension(path,ext) == True:
+        if _checkExtension(path, ext) == True:
             files.append(path)
         else:
             return False
@@ -45,6 +45,7 @@ def _findByExt(path, ext):
             if file.endswith("."+ext):
                 files.append(os.path.join(path, file))
     return files
+
 
 def _createDir(dir):
     """Forces directory creation by removing any pre-existing folder with same
@@ -62,6 +63,7 @@ def _checkExtension(path, ext):
         return False
     return True
 
+
 def _glyphnameParse(glyphnameFile):
     """Parses glyphname file according w3c/smufl reference."""
     result = []
@@ -71,6 +73,15 @@ def _glyphnameParse(glyphnameFile):
             codepoint = gnames[gname]["codepoint"].split("+")[1]
             result.append((codepoint, gname))
     return result
+
+
+def _ReplaceToken(dict_replace, target):
+    """Based on dict, replaces key with the value on the target."""
+
+    for check, replacer in list(dict_replace.items()):
+        target = target.replace("["+check+"]", replacer)
+
+    return target
 
 
 def _getFontsByType(path):
@@ -103,7 +114,7 @@ def _fontName(fontfile):
     font.close()
     # TODO: test for issues with multiple fonts
     name = name.decode('utf-8')
-    return name.replace(" ", "").replace("-","")
+    return name.replace(" ", "").replace("-", "")
 
 
 def fontCodepoints(fontfile):
@@ -121,7 +132,6 @@ def fontCodepoints(fontfile):
     return charcodes
 
 
-
 def fontNormalize(charcodes, private=False, excluded=[]):
     """Accepts list of tuples with charcodes and codepoints and returns
     names and charcodes."""
@@ -137,7 +147,6 @@ def fontNormalize(charcodes, private=False, excluded=[]):
             continue
         result.append((curcodepoint[1:], description))
     return result
-
 
 
 def defaultDescription(fontname, version):
@@ -173,15 +182,6 @@ def createCommandNames(fontname):
     return (defCmd, fontname)
 
 
-def replace_content(dict_replace, target):
-    """Based on dict, replaces key with the value on the target."""
-
-    for check, replacer in list(dict_replace.items()):
-        target = target.replace("["+check+"]", replacer)
-
-    return target
-
-
 def prepareStyle(fontfile, author, description, requirements=[]):
     """Prepares LaTeX package header, initialization commands and requirements."""
     genstyPath = os.path.abspath(os.path.dirname(__file__))
@@ -204,8 +204,9 @@ def prepareStyle(fontfile, author, description, requirements=[]):
 
     with open(genstyPath+"/template.sty") as templateFile:
         template = templateFile.read()
-        output = replace_content(data, template)
+        output = _ReplaceToken(data, template)
     return output
+
 
 def setupVariables(arguments):
     """ Produces usable data for  font(s) and validates arguments. Used to
@@ -213,8 +214,8 @@ def setupVariables(arguments):
 
     # optional arguments.
     version, author = varsOptionalValidate(arguments)
-    path  = _isFontPath(arguments.path)
-    fonts =_getFontsByType(arguments.path)
+    path = _isFontPath(arguments.path)
+    fonts = _getFontsByType(arguments.path)
 
     if not isinstance(fonts, list):
         raise Exception("Error could not retrieve fonts")
@@ -224,13 +225,13 @@ def setupVariables(arguments):
         name = _fontName(font)
         defcmd, cmd = createCommandNames(name)
         tmpDict = {
-            'fontname'    : name,
-            'fontnameN'   : _fontNameNormalize(name),
-            'fontpath'    : font,
-            'fontbase'    : os.path.basename(font),
-            'description' : defaultDescription(name,version),
-            'definition'  : defcmd,
-            'command'     : cmd
+            'fontname': name,
+            'fontnameN': _fontNameNormalize(name),
+            'fontpath': font,
+            'fontbase': os.path.basename(font),
+            'description': defaultDescription(name, version),
+            'definition': defcmd,
+            'command': cmd
         }
         fontnames[name] = tmpDict
 
@@ -238,32 +239,33 @@ def setupVariables(arguments):
         raise Exception("Error cannot retrieve fonts")
 
     return {
-            'isfile': path,
-            'year': datetime.today().strftime('%Y'),
-            'author': author,
-            'fontnames': fontnames,
-            'totalFonts': len(fonts),
+        'isfile': path,
+        'year': datetime.today().strftime('%Y'),
+        'author': author,
+        'fontnames': fontnames,
+        'totalFonts': len(fonts),
     }
+
 
 def varsOptionalValidate(arguments):
     """Validates and ensure existance of optional arguments."""
     version = arguments.ver
-    author  = arguments.author
+    author = arguments.author
 
     if version == None:
-        version  = "v.0.1"
+        version = "v.0.1"
     if author == None:
         author = __author__
 
-    return version,author
+    return version, author
 
 
 def retrieveCodes(filepath, smufl):
     """Retrieves the codepoints and symbols for the desired font, handles
     differently if its smufl font."""
-    if smufl != None and _checkExtension(smufl,"json") == False:
+    if smufl != None and _checkExtension(smufl, "json") == False:
         raise Exception("Error! Please provide a valid smufl json file")
-    elif smufl != None and _checkExtension(smufl,"json") == True:
+    elif smufl != None and _checkExtension(smufl, "json") == True:
         return _glyphnameParse(smufl)
     else:
         charcodes = fontCodepoints(filepath)
