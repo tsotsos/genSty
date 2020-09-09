@@ -151,7 +151,7 @@ def _fontCharList(charcodes, private=False, excluded=[]):
     result = []
     for charcode, codepoint in charcodes:
         description = _latexFriendlyName(Unicode[charcode])
-        curcodepoint = str(codepoint)
+        curcodepoint = codepoint
         if private == True and charcode >= 0xE000 and charcode <= 0xF8FF:
             continue
         if description in excluded:
@@ -290,11 +290,10 @@ def retrieveCodes(filepath, smufl):
     if smufl != None and _checkExtension(smufl, "json") == False:
         raise Exception("Error! Please provide a valid smufl json file")
     elif smufl != None and _checkExtension(smufl, "json") == True:
-        # BUG: check what should return.
         return _glyphnameParse(smufl)
     else:
         charcodes = _fontCodepoints(filepath)
-        codepoints = _fontCharList(charcodes, excluded=["????"])
+        charcodes = _fontCharList(charcodes, excluded=["????"])
         if isinstance(charcodes, list):
             return charcodes
         else:
