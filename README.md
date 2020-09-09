@@ -1,3 +1,4 @@
+![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/tsotsos/gensty?include_prereleases) ![PyPI - Status](https://img.shields.io/pypi/status/gensty) [![PyPI version](https://badge.fury.io/py/gensty.svg)](https://badge.fury.io/py/gensty) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gensty) [![License](https://img.shields.io/github/license/tsotsos/gensty.svg)](https://github.com/tsotsos/gensty)
 # genSty
 GenSty is a LaTex style package generator for OpenType fonts (otf/ttf) which supports W3C SMuFL notation. With gensty you can generate your LaTeX package based on any OpenType font; the generator parses ttf/otf files and creates LaTeX commands for all Unicode Symbols. In the case of SMuFL fonts, you can also include the glyphnames.json file, so it will create friendlier names and include "Private Use" symbols.
 
