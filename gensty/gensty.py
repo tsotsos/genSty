@@ -125,7 +125,7 @@ def _fontNameIdentifier(fontname, prefix=True):
     return result
 
 
-def fontCodepoints(fontfile):
+def _fontCodepoints(fontfile):
     """Creates a dict of codepoints and names for every character/symbol in the
     given font."""
     font = ttLib.TTFont(fontfile)
@@ -140,7 +140,7 @@ def fontCodepoints(fontfile):
     return charcodes
 
 
-def fontNormalize(charcodes, private=False, excluded=[]):
+def _fontCharList(charcodes, private=False, excluded=[]):
     """Accepts list of tuples with charcodes and codepoints and returns
     names and charcodes."""
     if not isinstance(charcodes, list):
@@ -173,7 +173,6 @@ def packageRequirements(requirements):
             continue
         reqstr += "\\RequirePackage{"+pkg+"}"
     return reqstr
-
 
 
 def createCommandNames(fontname):
@@ -268,8 +267,8 @@ def retrieveCodes(filepath, smufl):
     elif smufl != None and _checkExtension(smufl, "json") == True:
         return _glyphnameParse(smufl)
     else:
-        charcodes = fontCodepoints(filepath)
-        charcodes = fontNormalize(charcodes, excluded=["????"])
+        charcodes = _fontCodepoints(filepath)
+        charcodes = _fontCharList(charcodes, excluded=["????"])
         if isinstance(charcodes, list):
             return charcodes
         else:
