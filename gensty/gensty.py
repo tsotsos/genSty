@@ -369,28 +369,16 @@ def main():
 
     # Arguments preperation for use.
     arguments = setupVariables(args)
-    handleStyleCreation(arguments, args.smufl)
-    sys.exit()
+
     # Handles different cases of command.
     # In case of "all" flag we create styles for every font in folder. For both
-    # "all" true/false createPackage handles the package creation and
-    # createStyleFile the LaTeX style content.
-    if args.all == True and isdir(args.path) == False:
+    # "all" true/false createPackage creates the the LaTeX style content and
+    # package.
+    if args.all == True and os.path.isdir(args.path) == False:
         raise Exception(
             "Error! flag --all must be defined along with directory only!")
 
-    if args.all == True and isdir(args.path) == True:
-        fontfiles, result = handleFolder(args.path, optionals["author"],
-                                         optionals["description"], optionals["version"],
-                                         args.smufl)
-    if args.all == False and isfile(args.path) == True:
-        fontfiles, result = createStyleFile(args.path, optionals["author"],
-                                            optionals["description"], optionals["version"],
-                                            args.smufl)
-    # Create LaTeX package(s).
-    # createPackage(fontfiles, result)
-    print(result)
-
+    handleStyleCreation(arguments, args.smufl)
 
 if __name__ == "__main__":
     main()
