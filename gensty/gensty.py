@@ -123,6 +123,7 @@ def _fontName(fontfile):
     name = name.decode('utf-8')
     return name.replace(" ", "").replace("-", "")
 
+
 def _fontNameIdentifier(fontname, prefix=True):
     """Removes spaces and forces lowercase for font name, by default adds prefix
     'fnt' so we can avoid issues with simmilar names in other LaTeX packages."""
@@ -213,6 +214,7 @@ def prepareStyle(fontfile, author, description, requirements=[]):
         output = _ReplaceToken(data, template)
     return output
 
+
 def _optionalArguments(arguments):
     """Validates and ensure existance of optional arguments."""
     version = arguments.ver
@@ -229,17 +231,18 @@ def _optionalArguments(arguments):
 def _singleFontData(font, version):
     """Creates dict for single font to append into fonts dict on setupVariables
     hodling data for all fonts."""
-        name = _fontName(font)
-        defcmd, cmd = _latexCommands(name)
-        return {
-            'fontname': name,
-            'fontnameN': _fontNameIdentifier(name),
-            'fontpath': font,
-            'fontbase': os.path.basename(font),
-            'description': _latexDescription(name, version),
-            'definition': defcmd,
-            'command': cmd
-        }
+    name = _fontName(font)
+    defcmd, cmd = _latexCommands(name)
+    return {
+        'fontname': name,
+        'fontnameN': _fontNameIdentifier(name),
+        'fontpath': font,
+        'fontbase': os.path.basename(font),
+        'description': _latexDescription(name, version),
+        'definition': defcmd,
+        'command': cmd
+    }
+
 
 def setupVariables(arguments):
     """ Produces usable data for  font(s) and validates arguments. Used to
@@ -255,7 +258,7 @@ def setupVariables(arguments):
     # font specific data.
     fontnames = {}
     for font in fonts:
-        fontnames[_fontName(font)] = _singleFontData(font,version)
+        fontnames[_fontName(font)] = _singleFontData(font, version)
 
     if len(fontnames) == 0:
         raise Exception("Error cannot retrieve fonts")
@@ -275,7 +278,7 @@ def retrieveCodes(filepath, smufl):
     if smufl != None and _checkExtension(smufl, "json") == False:
         raise Exception("Error! Please provide a valid smufl json file")
     elif smufl != None and _checkExtension(smufl, "json") == True:
-        #BUG: check what should return.
+        # BUG: check what should return.
         print(_glyphnameParse(smufl))
         sys.exit()
         return _glyphnameParse(smufl)
