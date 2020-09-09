@@ -32,7 +32,7 @@ def _isFontPath ( path ):
         raise Exception("Error. Path must be a valid file or folder.")
 
 
-def findByExt(path, ext):
+def _findByExt(path, ext):
     """Finds file by extension. Returns list."""
     files = []
     if os.path.isfile(path) == True:
@@ -46,7 +46,9 @@ def findByExt(path, ext):
                 files.append(os.path.join(path, file))
     return files
 
-def createDir(dir):
+def _createDir(dir):
+    """Forces directory creation by removing any pre-existing folder with same
+    name."""
     if os.path.exists(dir):
         shutil.rmtree(dir)
     os.makedirs(dir)
@@ -65,7 +67,7 @@ def getFontsByType(path):
     """Gets supported fonts by file extesion in a given folder."""
     files = []
     for ext in __supported_fonts__:
-        fonts = findByExt(path, ext)
+        fonts = _findByExt(path, ext)
         if not isinstance(fonts, list):
             continue
         for font in fonts:
@@ -319,9 +321,9 @@ def handleFolder(path, author, description, version, smufl):
 def singlePackage(fontfile, content):
     """Creates a single package folder and its files."""
     fontname = fontName(fontfile)
-    createDir(fontname)
+    _createDir(fontname)
     packageFontsPath = fontname + "/fonts"
-    createDir(packageFontsPath)
+    _createDir(packageFontsPath)
     shutil.copy2(fontfile, packageFontsPath)
     writePackage(fontname+"/"+fontname, content)
 
