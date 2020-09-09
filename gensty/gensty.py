@@ -14,6 +14,12 @@ __email__ = 'tsotsos@gmail.com'
 __version__ = '0.1.5'
 __supported_fonts__ = ['ttf','otf']
 
+
+def _latexFriendlyName(s):
+    """Oneliner to return normalized name for LaTeX Style package."""
+    return(" ".join(x.capitalize() for x in s.split(" ")).replace(" ", "").replace("-", ""))
+
+
 def isFontPath ( path ):
     """ Checks if the path is file or folder. In case of folder returns all
     included fonts."""
@@ -103,10 +109,6 @@ def fontCodepoints(fontfile):
     return charcodes
 
 
-def latexFriendlyName(s):
-    """Oneliner to return normalized name for LaTeX Style package."""
-    return(" ".join(x.capitalize() for x in s.split(" ")).replace(" ", "").replace("-", ""))
-
 
 def fontNormalize(charcodes, private=False, excluded=[]):
     """Accepts list of tuples with charcodes and codepoints and returns
@@ -115,7 +117,7 @@ def fontNormalize(charcodes, private=False, excluded=[]):
         return False
     result = []
     for charcode, codepoint in charcodes:
-        description = latexFriendlyName(Unicode[charcode])
+        description = _latexFriendlyName(Unicode[charcode])
         curcodepoint = str(codepoint)
         if private == True and charcode >= 0xE000 and charcode <= 0xF8FF:
             continue
