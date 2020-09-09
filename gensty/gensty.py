@@ -116,6 +116,14 @@ def _fontName(fontfile):
     name = name.decode('utf-8')
     return name.replace(" ", "").replace("-", "")
 
+def _fontNameIdentifier(fontname, prefix=True):
+    """Removes spaces and forces lowercase for font name, by default adds prefix
+    'fnt' so we can avoid issues with simmilar names in other LaTeX packages."""
+    result = fontname.lower().replace(" ", "")
+    if prefix == True:
+        return "fnt"+result
+    return result
+
 
 def fontCodepoints(fontfile):
     """Creates a dict of codepoints and names for every character/symbol in the
@@ -167,14 +175,6 @@ def packageRequirements(requirements):
     return reqstr
 
 
-def _fontNameNormalize(fontname, prefix=True):
-    """Removes spaces and forces lowercase for font name, by default adds prefix
-    'fnt' so we can avoid issues with simmilar names in other LaTeX packages."""
-    result = fontname.lower().replace(" ", "")
-    if prefix == True:
-        return "fnt"+result
-    return result
-
 
 def createCommandNames(fontname):
     """Creates command name, definition and command."""
@@ -190,14 +190,14 @@ def prepareStyle(fontfile, author, description, requirements=[]):
     defcmd, cmd = createCommandNames(fontname)
     data = {
         'fontname': fontname+" Font",
-        'packageName': _fontNameNormalize(fontname, False),
+        'packageName': _fontNameIdentifier(fontname, False),
         'year': datetime.today().strftime('%Y'),
         'author': author,
         'description': description,
         'fontfile': fontfile,
         'fontspath': "fonts",
-        'fontfamily': _fontNameNormalize(fontname),
-        'fntidentifier': _fontNameNormalize(fontname),
+        'fontfamily': _fontNameIdentifier(fontname),
+        'fntidentifier': _fontNameIdentifier(fontname),
         'defcommand': defcmd,
         'command': cmd,
     }
@@ -226,7 +226,7 @@ def setupVariables(arguments):
         defcmd, cmd = createCommandNames(name)
         tmpDict = {
             'fontname': name,
-            'fontnameN': _fontNameNormalize(name),
+            'fontnameN': _fontNameIdentifier(name),
             'fontpath': font,
             'fontbase': os.path.basename(font),
             'description': defaultDescription(name, version),
