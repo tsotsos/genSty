@@ -164,13 +164,13 @@ def _fontCharList(charcodes, private=False, excluded=[]):
     return result
 
 
-def defaultDescription(fontname, version):
+def _latexDescription(fontname, version):
     """Creates default description text based on name and version."""
     currentDate = datetime.today().strftime('%Y-%m-%d')
     return "%s %s LaTeX package for %s" % (currentDate, version, fontname)
 
 
-def packageRequirements(requirements):
+def _latexRequirements(requirements):
     """Creates LaTeX package requirements. By default fontspec is nessessary."""
     reqstr = "\\RequirePackage{fontspec}"
     if not isinstance(requirements, list):
@@ -182,7 +182,7 @@ def packageRequirements(requirements):
     return reqstr
 
 
-def createCommandNames(fontname):
+def _latexCommands(fontname):
     """Creates command name, definition and command."""
     defCmd = "Define"+fontname
     return (defCmd, fontname)
@@ -193,7 +193,7 @@ def prepareStyle(fontfile, author, description, requirements=[]):
     genstyPath = os.path.abspath(os.path.dirname(__file__))
     fontname = _fontName(fontfile)
     fontfile = os.path.basename(fontfile)
-    defcmd, cmd = createCommandNames(fontname)
+    defcmd, cmd = _latexCommands(fontname)
     data = {
         'fontname': fontname+" Font",
         'packageName': _fontNameIdentifier(fontname, False),
@@ -213,13 +213,26 @@ def prepareStyle(fontfile, author, description, requirements=[]):
         output = _ReplaceToken(data, template)
     return output
 
+def _optionalArguments(arguments):
+    """Validates and ensure existance of optional arguments."""
+    version = arguments.ver
+    author = arguments.author
+
+    if version == None:
+        version = "v.0.1"
+    if author == None:
+        author = __author__
+
+    return version, author
+
+
 
 def setupVariables(arguments):
     """ Produces usable data for  font(s) and validates arguments. Used to
     create the final Style package."""
 
     # optional arguments.
-    version, author = varsOptionalValidate(arguments)
+    version, author = _optionalArguments(arguments)
     path = _isFontPath(arguments.path)
     fonts = _getFontsByType(arguments.path)
 
@@ -229,13 +242,13 @@ def setupVariables(arguments):
     fontnames = {}
     for font in fonts:
         name = _fontName(font)
-        defcmd, cmd = createCommandNames(name)
+        defcmd, cmd = _latexCommands(name)
         tmpDict = {
             'fontname': name,
             'fontnameN': _fontNameIdentifier(name),
             'fontpath': font,
             'fontbase': os.path.basename(font),
-            'description': defaultDescription(name, version),
+            'description': _latexDescription(name, version),
             'definition': defcmd,
             'command': cmd
         }
@@ -253,25 +266,15 @@ def setupVariables(arguments):
     }
 
 
-def varsOptionalValidate(arguments):
-    """Validates and ensure existance of optional arguments."""
-    version = arguments.ver
-    author = arguments.author
-
-    if version == None:
-        version = "v.0.1"
-    if author == None:
-        author = __author__
-
-    return version, author
-
-
 def retrieveCodes(filepath, smufl):
     """Retrieves the codepoints and symbols for the desired font, handles
     differently if its smufl font."""
     if smufl != None and _checkExtension(smufl, "json") == False:
         raise Exception("Error! Please provide a valid smufl json file")
     elif smufl != None and _checkExtension(smufl, "json") == True:
+        #BUG: check what should return.
+        print(_glyphnameParse(smufl))
+        sys.exit()
         return _glyphnameParse(smufl)
     else:
         charcodes = _fontCodepoints(filepath)
@@ -287,7 +290,7 @@ def createLaTexCommands(charcodes, fontfile):
     if not isinstance(charcodes, list):
         return False
     fontname = _fontName(fontfile)
-    cmds = createCommandNames(fontname)
+    cmds = _latexCommands(fontname)
     commands = "\n"
     for codepoint, desc in charcodes:
         commands += "\\"+cmds[0]+"{"+desc+"}{\\char\""+codepoint+"\\relax}\n"
@@ -300,7 +303,7 @@ def createStyleFile(font, author, description, version, smufl):
     """ Creates LaTeX Style file."""
     charcodes = retrieveCodes(font, smufl)
     if description == None:
-        description = defaultDescription(_fontName(font), version)
+        description = _latexDescription(_fontName(font), version)
     header = prepareStyle(font, author, description)
     latexCommands = createLaTexCommands(charcodes, font)
     return font, (header + latexCommands)
