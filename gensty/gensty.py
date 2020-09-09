@@ -226,6 +226,20 @@ def _optionalArguments(arguments):
     return version, author
 
 
+def _singleFontData(font, version):
+    """Creates dict for single font to append into fonts dict on setupVariables
+    hodling data for all fonts."""
+        name = _fontName(font)
+        defcmd, cmd = _latexCommands(name)
+        return {
+            'fontname': name,
+            'fontnameN': _fontNameIdentifier(name),
+            'fontpath': font,
+            'fontbase': os.path.basename(font),
+            'description': _latexDescription(name, version),
+            'definition': defcmd,
+            'command': cmd
+        }
 
 def setupVariables(arguments):
     """ Produces usable data for  font(s) and validates arguments. Used to
@@ -241,18 +255,7 @@ def setupVariables(arguments):
     # font specific data.
     fontnames = {}
     for font in fonts:
-        name = _fontName(font)
-        defcmd, cmd = _latexCommands(name)
-        tmpDict = {
-            'fontname': name,
-            'fontnameN': _fontNameIdentifier(name),
-            'fontpath': font,
-            'fontbase': os.path.basename(font),
-            'description': _latexDescription(name, version),
-            'definition': defcmd,
-            'command': cmd
-        }
-        fontnames[name] = tmpDict
+        fontnames[_fontName(font)] = _singleFontData(font,version)
 
     if len(fontnames) == 0:
         raise Exception("Error cannot retrieve fonts")
