@@ -36,7 +36,7 @@ def _findByExt(path, ext):
     """Finds file by extension. Returns list."""
     files = []
     if os.path.isfile(path) == True:
-        if checkExtension(path,ext) == True:
+        if _checkExtension(path,ext) == True:
             files.append(path)
         else:
             return False
@@ -54,7 +54,7 @@ def _createDir(dir):
     os.makedirs(dir)
 
 
-def checkExtension(path, ext):
+def _checkExtension(path, ext):
     """Defines if a file exists and its json."""
     if not os.path.isfile(path):
         return False
@@ -63,7 +63,7 @@ def checkExtension(path, ext):
     return True
 
 
-def getFontsByType(path):
+def _getFontsByType(path):
     """Gets supported fonts by file extesion in a given folder."""
     files = []
     for ext in __supported_fonts__:
@@ -76,7 +76,7 @@ def getFontsByType(path):
     return files
 
 
-def fontName(fontfile):
+def _fontName(fontfile):
     """Get the name from the font's names table.
     Customized function, original retrieved from: https://bit.ly/3lS4nMO
     """
@@ -93,7 +93,7 @@ def fontName(fontfile):
     font.close()
     # TODO: test for issues with multiple fonts
     name = name.decode('utf-8')
-    return name.replace(" ", "")
+    return name.replace(" ", "").replace("-","")
 
 
 def fontCodepoints(fontfile):
@@ -158,7 +158,7 @@ def packageRequirements(requirements):
     return reqstr
 
 
-def fontNameNormalize(fontname, prefix=True):
+def _fontNameNormalize(fontname, prefix=True):
     """Removes spaces and forces lowercase for font name, by default adds prefix
     'fnt' so we can avoid issues with simmilar names in other LaTeX packages."""
     result = fontname.lower().replace(" ", "")
@@ -185,19 +185,19 @@ def replace_content(dict_replace, target):
 def prepareStyle(fontfile, author, description, requirements=[]):
     """Prepares LaTeX package header, initialization commands and requirements."""
     genstyPath = os.path.abspath(os.path.dirname(__file__))
-    fontname = fontName(fontfile)
+    fontname = _fontName(fontfile)
     fontfile = os.path.basename(fontfile)
     defcmd, cmd = createCommandNames(fontname)
     data = {
         'fontname': fontname+" Font",
-        'packageName': fontNameNormalize(fontname, False),
+        'packageName': _fontNameNormalize(fontname, False),
         'year': datetime.today().strftime('%Y'),
         'author': author,
         'description': description,
         'fontfile': fontfile,
         'fontspath': "fonts",
-        'fontfamily': fontNameNormalize(fontname),
-        'fntidentifier': fontNameNormalize(fontname),
+        'fontfamily': _fontNameNormalize(fontname),
+        'fntidentifier': _fontNameNormalize(fontname),
         'defcommand': defcmd,
         'command': cmd,
     }
@@ -214,18 +214,18 @@ def setupVariables(arguments):
     # optional arguments.
     version, author = varsOptionalValidate(arguments)
     path  = _isFontPath(arguments.path)
-    fonts = getFontsByType(arguments.path)
+    fonts =_getFontsByType(arguments.path)
 
     if not isinstance(fonts, list):
         raise Exception("Error could not retrieve fonts")
     # font specific data.
     fontnames = {}
     for font in fonts:
-        name = fontName(font)
+        name = _fontName(font)
         defcmd, cmd = createCommandNames(name)
         tmpDict = {
             'fontname'    : name,
-            'fontnameN'   : fontNameNormalize(name),
+            'fontnameN'   : _fontNameNormalize(name),
             'fontpath'    : font,
             'fontbase'    : os.path.basename(font),
             'description' : defaultDescription(name,version),
@@ -261,9 +261,9 @@ def varsOptionalValidate(arguments):
 def retrieveCodes(filepath, smufl):
     """Retrieves the codepoints and symbols for the desired font, handles
     differently if its smufl font."""
-    if smufl != None and checkExtension(smufl,"json") == False:
+    if smufl != None and _checkExtension(smufl,"json") == False:
         raise Exception("Error! Please provide a valid smufl json file")
-    elif smufl != None and checkExtension(smufl,"json") == True:
+    elif smufl != None and _checkExtension(smufl,"json") == True:
         return glyphnameParse(smufl)
     else:
         charcodes = fontCodepoints(filepath)
@@ -278,7 +278,7 @@ def createLaTexCommands(charcodes, fontfile):
     """Generates LaTeX commands for each char code."""
     if not isinstance(charcodes, list):
         return False
-    fontname = fontName(fontfile)
+    fontname = _fontName(fontfile)
     cmds = createCommandNames(fontname)
     commands = "\n"
     for codepoint, desc in charcodes:
@@ -299,7 +299,7 @@ def createStyleFile(font, author, description, version, smufl):
     """ Creates LaTeX Style file."""
     charcodes = retrieveCodes(font, smufl)
     if description == None:
-        description = defaultDescription(fontName(font), version)
+        description = defaultDescription(_fontName(font), version)
     header = prepareStyle(font, author, description)
     latexCommands = createLaTexCommands(charcodes, font)
     return font, (header + latexCommands)
@@ -308,7 +308,7 @@ def createStyleFile(font, author, description, version, smufl):
 def handleFolder(path, author, description, version, smufl):
     """Iterates through provided path and returns fontfiles and style files
     content."""
-    fonts = getFontsByType(path)
+    fonts = _getFontsByType(path)
     result = []
     fontfiles = []
     for font in fonts:
@@ -320,7 +320,7 @@ def handleFolder(path, author, description, version, smufl):
 
 def singlePackage(fontfile, content):
     """Creates a single package folder and its files."""
-    fontname = fontName(fontfile)
+    fontname = _fontName(fontfile)
     _createDir(fontname)
     packageFontsPath = fontname + "/fonts"
     _createDir(packageFontsPath)
