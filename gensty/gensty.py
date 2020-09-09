@@ -189,6 +189,21 @@ def _latexDefCommands(fontname):
     return (defCmd, fontname)
 
 
+def _latexCommands(fontfile, smufl):
+    """Generates LaTeX commands for each char code."""
+    charcodes = retrieveCodes(fontfile, smufl)
+    if not isinstance(charcodes, list):
+        return False
+    fontname = _fontName(fontfile)
+    cmds = _latexDefCommands(fontname)
+    commands = "\n"
+    for codepoint, desc in charcodes:
+        commands += "\\"+cmds[0]+"{"+desc+"}{\\char\""+codepoint+"\\relax}\n"
+    if commands == "\n":
+        raise Exception("Error. Cannot create LaTeX style commands")
+    return commands
+
+
 def _latexTemplate(year, author, fontData, requirements=[]):
     """Prepares LaTeX package header, initialization commands and requirements."""
     genstyPath = os.path.abspath(os.path.dirname(__file__))
@@ -286,34 +301,6 @@ def retrieveCodes(filepath, smufl):
             raise Exception("Uknown font parse error")
 
 
-def _latexCommands(fontfile, smufl):
-    """Generates LaTeX commands for each char code."""
-    charcodes = retrieveCodes(fontfile, smufl)
-    if not isinstance(charcodes, list):
-        return False
-    fontname = _fontName(fontfile)
-    cmds = _latexDefCommands(fontname)
-    commands = "\n"
-    for codepoint, desc in charcodes:
-        commands += "\\"+cmds[0]+"{"+desc+"}{\\char\""+codepoint+"\\relax}\n"
-    if commands == "\n":
-        raise Exception("Error. Cannot create LaTeX style commands")
-    return commands
-
-
-def handleFolder(path, author, description, version, smufl):
-    """Iterates through provided path and returns fontfiles and style files
-    content."""
-    fonts = _getFontsByType(path)
-    result = []
-    fontfiles = []
-    for font in fonts:
-        _, sty = createStyleFile(font, author, description, version, smufl)
-        result.append(sty)
-        fontfiles.append(font)
-    return fontfiles, result
-
-
 def singlePackage(fontpath, fontname, content):
     """Creates a single package folder and its files."""
     _createDir(fontname)
@@ -379,6 +366,7 @@ def main():
             "Error! flag --all must be defined along with directory only!")
 
     handleStyleCreation(arguments, args.smufl)
+
 
 if __name__ == "__main__":
     main()
