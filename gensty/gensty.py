@@ -20,7 +20,7 @@ def _latexFriendlyName(s):
     return(" ".join(x.capitalize() for x in s.split(" ")).replace(" ", "").replace("-", ""))
 
 
-def isFontPath ( path ):
+def _isFontPath ( path ):
     """ Checks if the path is file or folder. In case of folder returns all
     included fonts."""
     if os.path.isfile(path):
@@ -211,7 +211,7 @@ def setupVariables(arguments):
 
     # optional arguments.
     version, author = varsOptionalValidate(arguments)
-    path  = isFontPath(arguments.path)
+    path  = _isFontPath(arguments.path)
     fonts = getFontsByType(arguments.path)
 
     if not isinstance(fonts, list):
