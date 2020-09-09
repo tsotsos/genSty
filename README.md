@@ -19,8 +19,7 @@ python3 /the/path/of/gensty/gensty.py
 As referred above, the package can be used directly, installed from pip, and as a module.
 In case of command line the script can be used : 
 ```console
-usage: genSty [-h] [--version] [--all] [--smufl SMUFL] [--name NAME] [--description DESCRIPTION] [--author AUTHOR]
-              [--ver VER]
+usage: genSty [-h] [--version] [--all] [--smufl SMUFL] [--description DESCRIPTION] [--author AUTHOR] [--ver VER]
               path
 
 LaTeX Style file generator for fonts
@@ -35,8 +34,6 @@ optional arguments:
   --smufl SMUFL, -s SMUFL
                         If choosed genSty will generate LaTeX Styles for all fonts in directory based on
                         glyphnames provided.
-  --name NAME, -n NAME  In case of single font provided forces specified name. Otherwise genSty detects the name
-                        from file.
   --description DESCRIPTION
                         LaTeX Style package description. It is ignored in case of --all flag.
   --author AUTHOR       Author's name.
