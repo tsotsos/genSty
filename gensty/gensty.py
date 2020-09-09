@@ -12,6 +12,7 @@ from fontTools.unicode import Unicode
 __author__ = 'Georgios Tsotsos'
 __email__ = 'tsotsos@gmail.com'
 __version__ = '0.1.5'
+__supported_fonts__ = ['ttf','otf']
 
 def isFontPath ( path ):
     """ Checks if the path is file or folder. In case of folder returns all
@@ -57,8 +58,7 @@ def checkExtension(path, ext):
 def getFontsByType(path):
     """Gets supported fonts by file extesion in a given folder."""
     files = []
-    fontExt = ["otf", "ttf"]
-    for ext in fontExt:
+    for ext in __supported_fonts__:
         fonts = findByExt(path, ext)
         if not isinstance(fonts, list):
             continue
