@@ -183,35 +183,32 @@ def _latexRequirements(requirements):
     return reqstr
 
 
-def _latexCommands(fontname):
+def _latexDefCommands(fontname):
     """Creates command name, definition and command."""
     defCmd = "Define"+fontname
     return (defCmd, fontname)
 
 
-def prepareStyle(fontfile, author, description, requirements=[]):
+def _latexTemplate(year, author, fontData, requirements=[]):
     """Prepares LaTeX package header, initialization commands and requirements."""
     genstyPath = os.path.abspath(os.path.dirname(__file__))
-    fontname = _fontName(fontfile)
-    fontfile = os.path.basename(fontfile)
-    defcmd, cmd = _latexCommands(fontname)
-    data = {
-        'fontname': fontname+" Font",
-        'packageName': _fontNameIdentifier(fontname, False),
-        'year': datetime.today().strftime('%Y'),
+    tokens = {
+        'fontname': fontData["fontname"]+" Font",
+        'packageName': fontData["fontname"],
+        'year': year,
         'author': author,
-        'description': description,
-        'fontfile': fontfile,
+        'description': fontData["description"],
+        'fontfile': fontData["fontbase"],
         'fontspath': "fonts",
-        'fontfamily': _fontNameIdentifier(fontname),
-        'fntidentifier': _fontNameIdentifier(fontname),
-        'defcommand': defcmd,
-        'command': cmd,
+        'fontfamily': fontData["fontnameN"],
+        'fntidentifier':fontData["fontnameN"],
+        'defcommand': fontData["definition"],
+        'command': fontData["command"],
     }
 
     with open(genstyPath+"/template.sty") as templateFile:
         template = templateFile.read()
-        output = _ReplaceToken(data, template)
+        output = _ReplaceToken(tokens, template)
     return output
 
 
@@ -232,7 +229,7 @@ def _singleFontData(font, version):
     """Creates dict for single font to append into fonts dict on setupVariables
     hodling data for all fonts."""
     name = _fontName(font)
-    defcmd, cmd = _latexCommands(name)
+    defcmd, cmd = _latexDefCommands(name)
     return {
         'fontname': name,
         'fontnameN': _fontNameIdentifier(name),
@@ -254,14 +251,14 @@ def setupVariables(arguments):
     fonts = _getFontsByType(arguments.path)
 
     if not isinstance(fonts, list):
-        raise Exception("Error could not retrieve fonts")
+        raise Exception("Error could not retrieve fonts.")
     # font specific data.
     fontnames = {}
     for font in fonts:
         fontnames[_fontName(font)] = _singleFontData(font, version)
 
     if len(fontnames) == 0:
-        raise Exception("Error cannot retrieve fonts")
+        raise Exception("Error could not retrieve fonts.")
 
     return {
         'isfile': path,
@@ -279,41 +276,29 @@ def retrieveCodes(filepath, smufl):
         raise Exception("Error! Please provide a valid smufl json file")
     elif smufl != None and _checkExtension(smufl, "json") == True:
         # BUG: check what should return.
-        print(_glyphnameParse(smufl))
-        sys.exit()
         return _glyphnameParse(smufl)
     else:
         charcodes = _fontCodepoints(filepath)
-        charcodes = _fontCharList(charcodes, excluded=["????"])
+        codepoints= _fontCharList(charcodes, excluded=["????"])
         if isinstance(charcodes, list):
             return charcodes
         else:
             raise Exception("Uknown font parse error")
 
 
-def createLaTexCommands(charcodes, fontfile):
+def _latexCommands(fontfile,smufl):
     """Generates LaTeX commands for each char code."""
+    charcodes = retrieveCodes(fontfile, smufl)
     if not isinstance(charcodes, list):
         return False
     fontname = _fontName(fontfile)
-    cmds = _latexCommands(fontname)
+    cmds = _latexDefCommands(fontname)
     commands = "\n"
     for codepoint, desc in charcodes:
         commands += "\\"+cmds[0]+"{"+desc+"}{\\char\""+codepoint+"\\relax}\n"
     if commands == "\n":
         raise Exception("Error. Cannot create LaTeX style commands")
     return commands
-
-
-def createStyleFile(font, author, description, version, smufl):
-    """ Creates LaTeX Style file."""
-    charcodes = retrieveCodes(font, smufl)
-    if description == None:
-        description = _latexDescription(_fontName(font), version)
-    header = prepareStyle(font, author, description)
-    latexCommands = createLaTexCommands(charcodes, font)
-    return font, (header + latexCommands)
-
 
 def handleFolder(path, author, description, version, smufl):
     """Iterates through provided path and returns fontfiles and style files
@@ -349,6 +334,17 @@ def createPackage(fontfiles, content):
     else:
         raise Exception("Error, cannot save files.")
 
+def handleStyleCreation (data,smufl):
+    """After setupVariables() we can safely use them to create Style
+    pacakage(s)."""
+    files = []
+    fontnames = data["fontnames"]
+    for val in fontnames:
+        header = _latexTemplate(data["year"],data["author"],fontnames[val])
+        commands = _latexCommands(fontnames[val]["fontpath"],smufl)
+        files.append(header+commands)
+    import pprint
+    pprint.pprint(files)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -371,8 +367,7 @@ def main():
 
     # Arguments preperation for use.
     arguments = setupVariables(args)
-    import pprint
-    pprint.pprint(arguments)
+    handleStyleCreation(arguments,args.smufl)
     sys.exit()
     # Handles different cases of command.
     # In case of "all" flag we create styles for every font in folder. For both
