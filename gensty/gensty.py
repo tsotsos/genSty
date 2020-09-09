@@ -64,6 +64,13 @@ def _checkExtension(path, ext):
     return True
 
 
+def _writePackage(fontname, code):
+    """Writes Style file."""
+    sty = open(fontname+".sty", "w")
+    sty.write(code)
+    sty.close()
+
+
 def _glyphnameParse(glyphnameFile):
     """Parses glyphname file according w3c/smufl reference."""
     result = []
@@ -289,13 +296,6 @@ def createLaTexCommands(charcodes, fontfile):
     return commands
 
 
-def writePackage(fontname, code):
-    """Writes Style file."""
-    sty = open(fontname+".sty", "w")
-    sty.write(code)
-    sty.close()
-
-
 def createStyleFile(font, author, description, version, smufl):
     """ Creates LaTeX Style file."""
     charcodes = retrieveCodes(font, smufl)
@@ -326,7 +326,7 @@ def singlePackage(fontfile, content):
     packageFontsPath = fontname + "/fonts"
     _createDir(packageFontsPath)
     shutil.copy2(fontfile, packageFontsPath)
-    writePackage(fontname+"/"+fontname, content)
+    _writePackage(fontname+"/"+fontname, content)
 
 
 def createPackage(fontfiles, content):
