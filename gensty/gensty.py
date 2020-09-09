@@ -313,38 +313,39 @@ def handleFolder(path, author, description, version, smufl):
     return fontfiles, result
 
 
-def singlePackage(fontfile, content):
+def singlePackage(fontpath, fontname, content):
     """Creates a single package folder and its files."""
-    fontname = _fontName(fontfile)
     _createDir(fontname)
     packageFontsPath = fontname + "/fonts"
     _createDir(packageFontsPath)
-    shutil.copy2(fontfile, packageFontsPath)
+    shutil.copy2(fontpath, packageFontsPath)
     _writePackage(fontname+"/"+fontname, content)
 
 
-def createPackage(fontfiles, content):
+def createPackage(fontpaths, files):
     """Creates the final package with style and font files."""
-    if isinstance(fontfiles, list) and isinstance(content, list):
-        for font in fontfiles:
-            for style in content:
-                singlePackage(font, style)
-    elif isinstance(fontfiles, str) and isinstance(content, str):
-        singlePackage(fontfiles, content)
-    else:
-        raise Exception("Error, cannot save files.")
+    if not bool(files) or not bool(fontpaths):
+        raise Exception("Error, could not create font package.")
+    for fontname in files:
+        if fontname == "" or fontname == None:
+            raise Exception("Error could not find font name")
+        singlePackage(fontpaths[fontname],fontname, files[fontname])
 
 def handleStyleCreation (data,smufl):
     """After setupVariables() we can safely use them to create Style
     pacakage(s)."""
-    files = []
+    files = {}
+    fontpaths = {}
     fontnames = data["fontnames"]
     for val in fontnames:
-        header = _latexTemplate(data["year"],data["author"],fontnames[val])
-        commands = _latexCommands(fontnames[val]["fontpath"],smufl)
-        files.append(header+commands)
-    import pprint
-    pprint.pprint(files)
+        fontpath = fontnames[val]["fontpath"]
+        header   = _latexTemplate(data["year"],data["author"],fontnames[val])
+        commands = _latexCommands(fontpath,smufl)
+        fontpaths[val] = fontpath
+        files[val] = header+commands
+
+    # creates font package with folder stracture etc.
+    createPackage(fontpaths,files)
 
 def main():
     parser = argparse.ArgumentParser(
