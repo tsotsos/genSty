@@ -1,12 +1,11 @@
-genSty
-======
-
-GenSty is a LaTex style package generator for OpenType fonts (otf/ttf)
-which supports W3C SMuFL notation. With gensty you can generate your
-LaTeX package based on any OpenType font; the generator parses ttf/otf
-files and creates LaTeX commands for all Unicode Symbols. In the case of
-SMuFL fonts, you can also include the glyphnames.json file, so it will
-create friendlier names and include "Private Use" symbols.
+|GitHub release (latest by date including pre-releases)| |PyPI - Status|
+|PyPI version| |PyPI - Python Version| |License| # genSty GenSty is a
+LaTex style package generator for OpenType fonts (otf/ttf) which
+supports W3C SMuFL notation. With gensty you can generate your LaTeX
+package based on any OpenType font; the generator parses ttf/otf files
+and creates LaTeX commands for all Unicode Symbols. In the case of SMuFL
+fonts, you can also include the glyphnames.json file, so it will create
+friendlier names and include "Private Use" symbols.
 
 Installation
 ------------
@@ -41,8 +40,7 @@ and as a module. In case of command line the script can be used :
 
 .. code:: console
 
-    usage: genSty [-h] [--version] [--all] [--smufl SMUFL] [--name NAME] [--description DESCRIPTION] [--author AUTHOR]
-                  [--ver VER]
+    usage: genSty [-h] [--version] [--all] [--smufl SMUFL] [--description DESCRIPTION] [--author AUTHOR] [--ver VER]
                   path
 
     LaTeX Style file generator for fonts
@@ -57,8 +55,6 @@ and as a module. In case of command line the script can be used :
       --smufl SMUFL, -s SMUFL
                             If choosed genSty will generate LaTeX Styles for all fonts in directory based on
                             glyphnames provided.
-      --name NAME, -n NAME  In case of single font provided forces specified name. Otherwise genSty detects the name
-                            from file.
       --description DESCRIPTION
                             LaTeX Style package description. It is ignored in case of --all flag.
       --author AUTHOR       Author's name.
@@ -95,3 +91,11 @@ License
 -------
 
 `GPLv2 <LICENSE>`__
+
+.. |GitHub release (latest by date including pre-releases)| image:: https://img.shields.io/github/v/release/tsotsos/gensty?include_prereleases
+.. |PyPI - Status| image:: https://img.shields.io/pypi/status/gensty
+.. |PyPI version| image:: https://badge.fury.io/py/gensty.svg
+   :target: https://badge.fury.io/py/gensty
+.. |PyPI - Python Version| image:: https://img.shields.io/pypi/pyversions/gensty
+.. |License| image:: https://img.shields.io/github/license/tsotsos/gensty.svg
+   :target: https://github.com/tsotsos/gensty
