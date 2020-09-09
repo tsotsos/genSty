@@ -62,6 +62,16 @@ def _checkExtension(path, ext):
         return False
     return True
 
+def _glyphnameParse(glyphnameFile):
+    """Parses glyphname file according w3c/smufl reference."""
+    result = []
+    with open(glyphnameFile) as json_file:
+        gnames = json.load(json_file)
+        for gname in gnames:
+            codepoint = gnames[gname]["codepoint"].split("+")[1]
+            result.append((codepoint, gname))
+    return result
+
 
 def _getFontsByType(path):
     """Gets supported fonts by file extesion in a given folder."""
@@ -128,16 +138,6 @@ def fontNormalize(charcodes, private=False, excluded=[]):
         result.append((curcodepoint[1:], description))
     return result
 
-
-def glyphnameParse(glyphnameFile):
-    """Parses glyphname file according w3c/smufl reference."""
-    result = []
-    with open(glyphnameFile) as json_file:
-        gnames = json.load(json_file)
-        for gname in gnames:
-            codepoint = gnames[gname]["codepoint"].split("+")[1]
-            result.append((codepoint, gname))
-    return result
 
 
 def defaultDescription(fontname, version):
@@ -264,7 +264,7 @@ def retrieveCodes(filepath, smufl):
     if smufl != None and _checkExtension(smufl,"json") == False:
         raise Exception("Error! Please provide a valid smufl json file")
     elif smufl != None and _checkExtension(smufl,"json") == True:
-        return glyphnameParse(smufl)
+        return _glyphnameParse(smufl)
     else:
         charcodes = fontCodepoints(filepath)
         charcodes = fontNormalize(charcodes, excluded=["????"])
