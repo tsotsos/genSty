@@ -11,7 +11,7 @@ from fontTools.unicode import Unicode
 
 __author__ = 'Georgios Tsotsos'
 __email__ = 'tsotsos@gmail.com'
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 __supported_fonts__ = ['ttf', 'otf']
 
 
