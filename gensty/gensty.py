@@ -331,12 +331,11 @@ def _latexHeaderTemplate(year, author, packageName):
         'year' : year,
         'author': author,
     }
-    print(tokens)
     return _makeTemplate("header.sty",tokens)
 
 def _latexDefCmdsTemplate(fontData):
     tokens = {
-        'fontfile' : fontData["fontpath"],
+        'fontfile' : fontData["fontbase"],
         'fontspath': "fonts",
         'fontfamily': fontData["fontnameN"],
         'fntidentifier': fontData["fontnameN"],
@@ -345,40 +344,42 @@ def _latexDefCmdsTemplate(fontData):
     }
     return _makeTemplate("defcommands.sty",tokens)
 
-def _multiPackPackage(fontnames, version, year, author):
-    """Creates file in case of multiple fonts in one package."""
-    files = {}
-    fontpaths = {}
-    defcmds = ""
-    header = _latexHeaderTemplate(year,author,"REPLACEME_PACKAGENAME")
-    for val in fontnames:
-        fontpaths[val] = fontnames[val]["fontpath"]
-        defcmds  += _latexDefCmdsTemplate(fontnames[val])
-
-    files["REPLACEME_PACKAGENAME"] = header + defcmds
-
-    return fontpaths, files
-
-def makePackage(fontpath, version=None, author=None, smufl=None,multiPack=True):
+def makePackage(fontpath, version=None, author=None, smufl=None,packageName=None):
     """After setupVariables() we can safely use them to create Style
     pacakage(s)."""
     data = setupVariables(fontpath, version, author)
-    files = {}
-    fontpaths = {}
-    fontnames = data["fontnames"]
-    if multiPack == True:
-        import pprint
-        pprint.pprint(_multiPackPackage(fontnames,data["version"],data["year"],data["author"]))
-        sys.exit()
+    fontData = data["fontnames"]
+    result = {}
+    styfiles = []
+    fontnames = []
+    fontpaths = []
+    if packageName != None and packageName != "":
+        header = _latexHeaderTemplate(data["year"],data["author"],packageName)
+        defcmds = ""
+        commands = ""
+        for val in fontData:
+            fontpaths.append(fontData[val]["fontpath"])
+            fontnames.append(val)
+            defcmds  += _latexDefCmdsTemplate(fontData[val])
+            commands += _latexCommands(fontData[val]["fontpath"],smufl)
+        styfiles.append( header + defcmds + commands )
     else:
-        for val in fontnames:
-            fontpath = fontnames[val]["fontpath"]
-            header = _latexTemplate(data["year"], data["author"], fontnames[val])
-            commands = _latexCommands(fontpath, smufl)
-            fontpaths[val] = fontpath
-            files[val] = header+commands
+        for val in fontData:
+            fontpaths.append(fontData[val]["fontpath"])
+            fontnames.append(val)
+            header = _latexHeaderTemplate(data["year"],data["author"],val)
+            defcmds = _latexDefCmdsTemplate(fontData[val])
+            commands = _latexCommands(fontData[val]["fontpath"],smufl)
+            styfiles.append(header + defcmds + commands)
 
-    return fontpaths, files
+    result = {
+        'packageName' : packageName,
+        'fontsNumber' : len(fontpaths),
+        'fontnames': fontnames,
+        'fontFiles': fontpaths,
+        'files': styfiles,
+    }
+    return result
 
 
 def main():
@@ -404,10 +405,12 @@ def main():
         raise Exception(
             "Error! flag --all must be defined along with directory only!")
 
-    fontpaths, files = makePackage(
-        args.path, args.ver, args.author, args.smufl)
+    fontPackages = makePackage(
+        args.path, args.ver, args.author, args.smufl,"Bravura")
+    import pprint
+    pprint.pprint(fontPackages)
     # creates font package with folder stracture etc.
-    savePackage(fontpaths, files)
+    # savePackage(fontpaths, files)
 
 
 if __name__ == "__main__":
