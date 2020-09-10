@@ -298,7 +298,7 @@ def retrieveCodes(filepath, smufl):
             raise Exception("Uknown font parse error")
 
 
-def singlePackage(fontpath, fontname, content):
+def _singlePackage(fontpath, fontname, content):
     """Creates a single package folder and its files."""
     _createDir(fontname)
     packageFontsPath = fontname + "/fonts"
@@ -307,17 +307,17 @@ def singlePackage(fontpath, fontname, content):
     _writePackage(fontname+"/"+fontname, content)
 
 
-def createPackage(fontpaths, files):
+def savePackage(fontpaths, files):
     """Creates the final package with style and font files."""
     if not bool(files) or not bool(fontpaths):
         raise Exception("Error, could not create font package.")
     for fontname in files:
         if fontname == "" or fontname == None:
             raise Exception("Error could not find font name")
-        singlePackage(fontpaths[fontname], fontname, files[fontname])
+        _singlePackage(fontpaths[fontname], fontname, files[fontname])
 
 
-def handleStyleCreation(fontpath, version, author, smufl):
+def makePackage(fontpath, version, author, smufl):
     """After setupVariables() we can safely use them to create Style
     pacakage(s)."""
     data = setupVariables(fontpath, version, author)
@@ -331,8 +331,7 @@ def handleStyleCreation(fontpath, version, author, smufl):
         fontpaths[val] = fontpath
         files[val] = header+commands
 
-    # creates font package with folder stracture etc.
-    createPackage(fontpaths, files)
+    return fontpaths, files
 
 
 def main():
@@ -360,7 +359,9 @@ def main():
         raise Exception(
             "Error! flag --all must be defined along with directory only!")
 
-    handleStyleCreation(args.path, args.ver, args.author, args.smufl)
+    fontpaths, files = makePackage(args.path, args.ver, args.author, args.smufl)
+    # creates font package with folder stracture etc.
+    savePackage(fontpaths, files)
 
 
 if __name__ == "__main__":
