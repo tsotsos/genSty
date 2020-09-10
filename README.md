@@ -77,7 +77,7 @@ import gensty
 fontpaths, files = gensty.makePackage(path, version, author, smufl)
 
 # if you want to save style packages in a folder use:
-savePackage(fontpaths,files)
+gensty.savePackage(fontpaths,files)
 
 ```
 
