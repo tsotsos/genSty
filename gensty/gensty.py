@@ -205,7 +205,6 @@ def _latexCommands(fontfile, smufl):
 
 def _latexTemplate(year, author, fontData, requirements=[]):
     """Prepares LaTeX package header, initialization commands and requirements."""
-    genstyPath = os.path.abspath(os.path.dirname(__file__))
     tokens = {
         'fontname': fontData["fontname"]+" Font",
         'packageName': fontData["fontname"],
@@ -219,12 +218,16 @@ def _latexTemplate(year, author, fontData, requirements=[]):
         'defcommand': fontData["definition"],
         'command': fontData["command"],
     }
+    output = _makeTemplate("template.sty",tokens)
+    return output
 
-    with open(genstyPath+"/resources/template.sty") as templateFile:
+def _makeTemplate(template, tokens):
+    """Parses and replace tokens in template string."""
+    genstyPath = os.path.abspath(os.path.dirname(__file__))
+    with open(genstyPath+"/resources/"+template) as templateFile:
         template = templateFile.read()
         output = _ReplaceToken(tokens, template)
     return output
-
 
 def _optionalArguments(version, author):
     """Validates and ensure existance of optional arguments."""
