@@ -317,7 +317,7 @@ def savePackage(fontpaths, files):
         _singlePackage(fontpaths[fontname], fontname, files[fontname])
 
 
-def makePackage(fontpath, version, author, smufl):
+def makePackage(fontpath, version=None, author=None, smufl=None):
     """After setupVariables() we can safely use them to create Style
     pacakage(s)."""
     data = setupVariables(fontpath, version, author)
@@ -357,7 +357,8 @@ def main():
         raise Exception(
             "Error! flag --all must be defined along with directory only!")
 
-    fontpaths, files = makePackage(args.path, args.ver, args.author, args.smufl)
+    fontpaths, files = makePackage(
+        args.path, args.ver, args.author, args.smufl)
     # creates font package with folder stracture etc.
     savePackage(fontpaths, files)
 
