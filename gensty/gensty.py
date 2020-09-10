@@ -345,8 +345,6 @@ def main():
                         help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory')
     parser.add_argument('--smufl', '-s', type=str,
                         help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory based on glyphnames provided.')
-    parser.add_argument('--description', type=str,
-                        help='LaTeX Style package description. It is ignored in case of --all flag.')
     parser.add_argument('--author', type=str, help='Author\'s name.')
     parser.add_argument('--ver', type=str, help='LaTeX package version.')
     args = parser.parse_args()

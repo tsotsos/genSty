@@ -56,9 +56,6 @@ optional arguments:
   --smufl SMUFL, -s SMUFL
                         If choosed genSty will generate LaTeX Styles for all
                         fonts in directory based on glyphnames provided.
-  --description DESCRIPTION
-                        LaTeX Style package description. It is ignored in case
-                        of --all flag.
   --author AUTHOR       Author's name.
   --ver VER             LaTeX package version.
 ```
