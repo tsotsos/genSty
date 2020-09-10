@@ -218,6 +218,9 @@ def _latexTemplate(year, author, fontData, requirements=[]):
         'defcommand': fontData["definition"],
         'command': fontData["command"],
     }
+    import pprint
+    pprint.pprint(fontData)
+    sys.exit()
     output = _makeTemplate("template.sty",tokens)
     return output
 
@@ -279,6 +282,7 @@ def setupVariables(fontpath, version, author):
         'isfile': path,
         'year': datetime.today().strftime('%Y'),
         'author': author,
+        'version': version,
         'fontnames': fontnames,
         'totalFonts': len(fonts),
     }
@@ -319,19 +323,58 @@ def savePackage(fontpaths, files):
         _singlePackage(fontpaths[fontname], fontname, files[fontname])
 
 
-def makePackage(fontpath, version=None, author=None, smufl=None):
+def _latexHeaderTemplate(year, author, packageName):
+    tokens = {
+        'packageName' : packageName,
+        'year' : year,
+        'author': author,
+    }
+    print(tokens)
+    return _makeTemplate("header.sty",tokens)
+
+def _latexDefCmdsTemplate(fontData):
+    tokens = {
+        'fontfile' : fontData["fontpath"],
+        'fontspath': "fonts",
+        'fontfamily': fontData["fontnameN"],
+        'fntidentifier': fontData["fontnameN"],
+        'defcommand': fontData["definition"],
+        'command': fontData["command"],
+    }
+    return _makeTemplate("defcommands.sty",tokens)
+
+def _multiPackPackage(fontnames, version, year, author):
+    """Creates file in case of multiple fonts in one package."""
+    files = {}
+    fontpaths = {}
+    defcmds = ""
+    header = _latexHeaderTemplate(year,author,"REPLACEME_PACKAGENAME")
+    for val in fontnames:
+        fontpaths[val] = fontnames[val]["fontpath"]
+        defcmds  += _latexDefCmdsTemplate(fontnames[val])
+
+    files["REPLACEME_PACKAGENAME"] = header + defcmds
+
+    return fontpaths, files
+
+def makePackage(fontpath, version=None, author=None, smufl=None,multiPack=True):
     """After setupVariables() we can safely use them to create Style
     pacakage(s)."""
     data = setupVariables(fontpath, version, author)
     files = {}
     fontpaths = {}
     fontnames = data["fontnames"]
-    for val in fontnames:
-        fontpath = fontnames[val]["fontpath"]
-        header = _latexTemplate(data["year"], data["author"], fontnames[val])
-        commands = _latexCommands(fontpath, smufl)
-        fontpaths[val] = fontpath
-        files[val] = header+commands
+    if multiPack == True:
+        import pprint
+        pprint.pprint(_multiPackPackage(fontnames,data["version"],data["year"],data["author"]))
+        sys.exit()
+    else:
+        for val in fontnames:
+            fontpath = fontnames[val]["fontpath"]
+            header = _latexTemplate(data["year"], data["author"], fontnames[val])
+            commands = _latexCommands(fontpath, smufl)
+            fontpaths[val] = fontpath
+            files[val] = header+commands
 
     return fontpaths, files
 
