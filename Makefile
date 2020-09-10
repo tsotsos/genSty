@@ -1,13 +1,15 @@
-.PHONY: clean-pyc clean-build clean
+.PHONY: clean-pyc clean-build clean docs
 help:
 	@echo "clean - remove all build, test, coverage and Python artifacts"
 	@echo "clean-build - remove build artifacts"
 	@echo "clean-pyc - remove Python file artifacts"
+	@echo "clean-docs - removes documentation folder"
 	@echo "release - package and upload a release"
+	@echo "docs - generates documentation with shpinx"
 	@echo "dist - package"
 	@echo "install - install the package to the active Python's site-packages"
 
-clean: clean-build clean-pyc
+clean: clean-build clean-pyc clean-docs
 
 clean-build:
 	rm -fr build/
@@ -22,6 +24,11 @@ clean-pyc:
 	find . -name '*~' -exec rm -f {} +
 	find . -name '__pycache__' -exec rm -fr {} +
 
+clean-docs:
+	rm -rf documentation/
+
+docs:
+	sphinx-build -b html docs documentation
 
 release: clean
 	python setup.py sdist upload
