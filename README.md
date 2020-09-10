@@ -14,7 +14,7 @@ the glyphnames.json file, so it will create friendlier names and include
 
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
 
-```bash
+```console
 pip install gensty
 ```
 
@@ -22,7 +22,7 @@ pip install gensty
 
 Clone the repository
 
-```bash
+```console
 git clone git@github.com:tsotsos/genSty.git
 ```
 
@@ -37,7 +37,7 @@ python3 /the/path/of/gensty/gensty.py
 As referred above, the package can be used directly, installed from pip, and as
 a module. In case of command line the script can be used :
 
-```bash
+```console
 usage: genSty [-h] [--version] [--all] [--smufl SMUFL]
                     [--description DESCRIPTION] [--author AUTHOR] [--ver VER]
                     path
@@ -68,24 +68,17 @@ optional arguments:
 ```python
 import gensty
 
-# create LaTeX packages for all fonts in directory 'folderPath'
-# sumfPath is optional and should be glyphnames.json as refered to W3C
-# Specifications here: https://www.w3.org/2019/03/smufl13/specification/glyphnames.html
-# author, description, version are optional
-fontfiles, result = gensty.handleFolder(folderPath, authorName, description,
-                                        version, sumflPath)
+# To create all style packages from a folder or fontfile (path). use
+# makePackage().
+# Optional arguments: version, author and smufl.
+# smufl is path to glyphnames.json which is defined according to Specifications
+# https://www.w3.org/2019/03/smufl13/specification/glyphnames.html
 
-# create LaTeX package for one font, otf/ttf must specified in `fontpath'
-fontfiles, result = gensty.createStyleFile(fontpath, author, description,
-                                            version, smufl)
+fontpaths, files = gensty.makePackage(path, version, author, smufl)
 
-# both functions return fontfiles list (stirng in 2nd case) and the content for
-# sty file to passed in 'gensty.createPackage()'
-#finally you can create the LaTeX package(s) via :
-gensty.createPackage(fontfiles,result)
+# if you want to save style packages in a folder use:
+savePackage(fontpaths,files)
 
-# that's it GenSty will create one folder for each font with sty and font files
-# to be included directly in any LaTeX document.
 ```
 
 ## Contributing
@@ -93,6 +86,3 @@ gensty.createPackage(fontfiles,result)
 Pull requests are welcome. For major changes, please open an issue first to
 discuss what you would like to change.
 
-## License
-
-[GPLv2](LICENSE)
