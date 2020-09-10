@@ -19,7 +19,6 @@ def _isFontPath(path):
     """ Checks if the path is file or folder. In case of folder returns all
     included fonts."""
     if os.path.isfile(path):
-        # TODO: verify file type.
         return True
     elif os.path.isdir(path):
         return False
