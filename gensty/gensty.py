@@ -227,11 +227,8 @@ def _latexTemplate(year, author, fontData, requirements=[]):
     return output
 
 
-def _optionalArguments(arguments):
+def _optionalArguments(version, author):
     """Validates and ensure existance of optional arguments."""
-    version = arguments.ver
-    author = arguments.author
-
     if version == None:
         version = "v.0.1"
     if author == None:
@@ -256,14 +253,15 @@ def _singleFontData(font, version):
     }
 
 
-def setupVariables(arguments):
+def setupVariables(fontpath, version, author):
     """ Produces usable data for  font(s) and validates arguments. Used to
     create the final Style package."""
 
     # optional arguments.
-    version, author = _optionalArguments(arguments)
-    path = _isFontPath(arguments.path)
-    fonts = _getFontsByType(arguments.path)
+    version, author = _optionalArguments(version, author)
+
+    path = _isFontPath(fontpath)
+    fonts = _getFontsByType(fontpath)
 
     if not isinstance(fonts, list):
         raise Exception("Error could not retrieve fonts.")
@@ -319,9 +317,10 @@ def createPackage(fontpaths, files):
         singlePackage(fontpaths[fontname], fontname, files[fontname])
 
 
-def handleStyleCreation(data, smufl):
+def handleStyleCreation(fontpath, version, author, smufl):
     """After setupVariables() we can safely use them to create Style
     pacakage(s)."""
+    data = setupVariables(fontpath, version, author)
     files = {}
     fontpaths = {}
     fontnames = data["fontnames"]
@@ -353,9 +352,6 @@ def main():
     parser.add_argument('--ver', type=str, help='LaTeX package version.')
     args = parser.parse_args()
 
-    # Arguments preperation for use.
-    arguments = setupVariables(args)
-
     # Handles different cases of command.
     # In case of "all" flag we create styles for every font in folder. For both
     # "all" true/false createPackage creates the the LaTeX style content and
@@ -364,7 +360,7 @@ def main():
         raise Exception(
             "Error! flag --all must be defined along with directory only!")
 
-    handleStyleCreation(arguments, args.smufl)
+    handleStyleCreation(args.path, args.ver, args.author, args.smufl)
 
 
 if __name__ == "__main__":
