@@ -17,6 +17,33 @@ __header_template = 'resources/header.sty'
 __commands_template = 'resources/defcommands.sty'
 
 
+class fontStyle:
+    def __init__(self, fontfile, smufl=None):
+        self.fontfile   = fontfile
+        self.name       = _fontName(fontfile)
+        self.smufl      = smufl
+        self.codepoints = self.retrieveCodes()
+        self.errors     = []
+
+    def retrieveCodes(self):
+        """Retrieves the codepoints and symbols for the desired font, handles
+        differently if its smufl font."""
+        if self.smufl != None and _checkExtension(self.smufl, "json") == True:
+            charcodes = _glyphnameParse(self.smufl)
+            if len(charcodes) == 0:
+                self.errors.append("Empty glyphnames file.")
+                return False
+            return charcodes
+        else:
+            charcodes = _fontCodepoints(self.fontfile)
+            charcodes = _fontCharList(charcodes, excluded=["????", "Space"])
+            if isinstance(charcodes, list):
+                return charcodes
+            else:
+                self.errors.append("Error with parsing file.")
+                return False
+
+
 def _isFontPath(path):
     """ Checks if the path is file or folder. In case of folder returns all
     included fonts."""
@@ -412,6 +439,9 @@ def main():
     if args.all == True and os.path.isdir(args.path) == False:
         raise Exception(
             "Error! flag --all must be defined along with directory only!")
+
+    if args.smufl != None and _checkExtension(args.smufl, "json") == False:
+        raise Exception("Error! Please provide a valid smufl json file")
 
     fontPackages = makePackage(
         args.path, args.ver, args.author, args.smufl, args.one_package, args.force_name)
