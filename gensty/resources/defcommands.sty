@@ -1,6 +1,5 @@
 \newfontfamily\[fontfamily]{[fontfile]}[Path=./[fontspath]/]
-
-  \newcommand{\[defcommand]}[2]{%
+\newcommand{\[defcommand]}[2]{%
    \expandafter\newcommand\csname [fntidentifier]#1\endcsname{#2}%
 }
 \newcommand{\[command]}[1]{\makeatletter \[fontfamily] \csname [fntidentifier]#1\endcsname \reset@font\makeatother}
