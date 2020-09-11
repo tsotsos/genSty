@@ -11,7 +11,7 @@ from fontTools.unicode import Unicode
 
 __author__ = 'Georgios Tsotsos'
 __email__ = 'tsotsos@gmail.com'
-__version__ = '0.2.4'
+__version__ = '0.2.5'
 __supported_fonts__ = ['ttf', 'otf']
 __header_template = 'resources/header.sty'
 __commands_template = 'resources/defcommands.sty'
@@ -158,7 +158,6 @@ def _fontCharList(charcodes, private=False, excluded=[]):
             continue
         result.append((charcode, description))
     return result
-
 
 def _latexFriendlyName(s):
     """Oneliner to return normalized name for LaTeX Style package."""
