@@ -183,19 +183,24 @@ def _latexRequirements(requirements):
     return reqstr
 
 
-def _latexDefCommands(fontname):
+def _latexDefCommands(fontname,forced=None):
     """Creates command name, definition and command."""
+
+    if forced != None:
+        defCmd = "Define"+forced
+        return (defCmd, forced)
+
     defCmd = "Define"+fontname
     return (defCmd, fontname)
 
 
-def _latexCommands(fontfile, smufl):
+def _latexCommands(fontfile, smufl,forcedName):
     """Generates LaTeX commands for each char code."""
     charcodes = retrieveCodes(fontfile, smufl)
     if not isinstance(charcodes, list):
         return False
     fontname = _fontName(fontfile)
-    cmds = _latexDefCommands(fontname)
+    cmds = _latexDefCommands(fontname,forcedName)
     commands = "\n"
     for codepoint, desc in charcodes:
         commands += "\\"+cmds[0]+"{"+desc+"}{\\symbol{"+str(codepoint)+"}}\n"
@@ -247,11 +252,11 @@ def _optionalArguments(version, author):
     return version, author
 
 
-def _singleFontData(font, version):
+def _singleFontData(font, version,forcedName):
     """Creates dict for single font to append into fonts dict on setupVariables
     hodling data for all fonts."""
     name = _fontName(font)
-    defcmd, cmd = _latexDefCommands(name)
+    defcmd, cmd = _latexDefCommands(name,forcedName)
     return {
         'fontname': name,
         'fontnameN': _fontNameIdentifier(name),
@@ -263,7 +268,7 @@ def _singleFontData(font, version):
     }
 
 
-def setupVariables(fontpath, version, author):
+def setupVariables(fontpath, version, author,forcedName):
     """ Produces usable data for  font(s) and validates arguments. Used to
     create the final Style package."""
 
@@ -278,7 +283,7 @@ def setupVariables(fontpath, version, author):
     # font specific data.
     fontnames = {}
     for font in fonts:
-        fontnames[_fontName(font)] = _singleFontData(font, version)
+        fontnames[_fontName(font)] = _singleFontData(font, version, forcedName)
 
     if len(fontnames) == 0:
         raise Exception("Error could not retrieve fonts.")
@@ -340,10 +345,10 @@ def savePackage(fontPackages):
                            fontPackages["files"][idx])
 
 
-def makePackage(fontpath, version=None, author=None, smufl=None, packageName=None):
+def makePackage(fontpath, version=None, author=None, smufl=None, packageName=None, forcedName=None):
     """After setupVariables() we can safely use them to create Style
     pacakage(s)."""
-    data = setupVariables(fontpath, version, author)
+    data = setupVariables(fontpath, version, author,forcedName)
     fontData = data["fontnames"]
     result = {}
     styfiles = []
@@ -358,7 +363,7 @@ def makePackage(fontpath, version=None, author=None, smufl=None, packageName=Non
             fontpaths.append(fontData[val]["fontpath"])
             fontnames.append(val)
             defcmds += _latexDefCommandsPartial(fontData[val])
-            commands += _latexCommands(fontData[val]["fontpath"], smufl)
+            commands += _latexCommands(fontData[val]["fontpath"], smufl,forcedName)
         styfiles.append(header + defcmds + commands)
     else:
         for val in fontData:
@@ -367,7 +372,7 @@ def makePackage(fontpath, version=None, author=None, smufl=None, packageName=Non
             header = _latexHeaderPartial(
                 data["year"], data["version"], data["author"], val)
             defcmds = _latexDefCommandsPartial(fontData[val])
-            commands = _latexCommands(fontData[val]["fontpath"], smufl)
+            commands = _latexCommands(fontData[val]["fontpath"], smufl,forcedName)
             styfiles.append(header + defcmds + commands)
 
     result = {
@@ -393,6 +398,8 @@ def main():
                         help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory based on glyphnames provided.')
     parser.add_argument('--one-package', type=str,
                         help='Creates one package with name provided by this argument.')
+    parser.add_argument('--force-name', type=str,
+                        help='Forces LaTeX command name. Use with cautious in case of simmilar symbols on same package there will be an error.')
     parser.add_argument('--author', type=str, help='Author\'s name.')
     parser.add_argument('--ver', type=str, help='LaTeX package version.')
     args = parser.parse_args()
@@ -406,7 +413,7 @@ def main():
             "Error! flag --all must be defined along with directory only!")
 
     fontPackages = makePackage(
-        args.path, args.ver, args.author, args.smufl, args.one_package)
+        args.path, args.ver, args.author, args.smufl, args.one_package, args.force_name)
     # creates font package with folder stracture etc.
     savePackage(fontPackages)
 
