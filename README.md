@@ -39,8 +39,8 @@ a module. In case of command line the script can be used :
 
 ```console
 usage: genSty [-h] [--version] [--all] [--smufl SMUFL]
-                    [--description DESCRIPTION] [--author AUTHOR] [--ver VER]
-                    path
+              [--one-package ONE_PACKAGE] [--author AUTHOR] [--ver VER]
+              path
 
 LaTeX Style file generator for fonts
 
@@ -56,6 +56,9 @@ optional arguments:
   --smufl SMUFL, -s SMUFL
                         If choosed genSty will generate LaTeX Styles for all
                         fonts in directory based on glyphnames provided.
+  --one-package ONE_PACKAGE
+                        Creates one package with name provided by this
+                        argument.
   --author AUTHOR       Author's name.
   --ver VER             LaTeX package version.
 ```
