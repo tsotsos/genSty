@@ -73,8 +73,8 @@ def _glyphnameParse(glyphnameFile):
     with open(glyphnameFile) as json_file:
         gnames = json.load(json_file)
         for gname in gnames:
-            codepoint = gnames[gname]["codepoint"].split("+")[1]
-            result.append((codepoint, gname))
+            codepoint = gnames[gname]["codepoint"].replace("U+", "")
+            result.append((int(codepoint, 16), gname))
     return result
 
 
@@ -152,12 +152,11 @@ def _fontCharList(charcodes, private=False, excluded=[]):
     result = []
     for charcode, codepoint in charcodes:
         description = _latexFriendlyName(Unicode[charcode])
-        curcodepoint = codepoint
         if private == True and charcode >= 0xE000 and charcode <= 0xF8FF:
             continue
         if description in excluded:
             continue
-        result.append((curcodepoint[1:], description))
+        result.append((charcode, description))
     return result
 
 
@@ -199,16 +198,17 @@ def _latexCommands(fontfile, smufl):
     cmds = _latexDefCommands(fontname)
     commands = "\n"
     for codepoint, desc in charcodes:
-        commands += "\\"+cmds[0]+"{"+desc+"}{\\char\""+codepoint+"\\relax}\n"
+        commands += "\\"+cmds[0]+"{"+desc+"}{\\symbol{"+str(codepoint)+"}}\n"
     if commands == "\n":
         raise Exception("Error. Cannot create LaTeX style commands")
     return commands
 
 
-def _latexHeaderPartial(year, author, packageName):
+def _latexHeaderPartial(year, author, version, packageName):
     """Fills header style partial."""
     tokens = {
         'packageName': packageName,
+        'description': _latexDescription(packageName, version),
         'year': year,
         'author': author,
     }
@@ -302,7 +302,7 @@ def retrieveCodes(filepath, smufl):
         return _glyphnameParse(smufl)
     else:
         charcodes = _fontCodepoints(filepath)
-        charcodes = _fontCharList(charcodes, excluded=["????"])
+        charcodes = _fontCharList(charcodes, excluded=["????", "Space"])
         if isinstance(charcodes, list):
             return charcodes
         else:
@@ -326,7 +326,7 @@ def savePackage(fontPackages):
         raise Exception("Error, could not create font package(s).")
     import pprint
     if fontPackages["packageName"] != None:
-        packageName = _fontNameIdentifier(fontPackages["packageName"], False)
+        packageName = fontPackages["packageName"]
         packageFontsPath = packageName + "/fonts"
         _createDir(packageName)
         _createDir(packageFontsPath)
@@ -350,7 +350,8 @@ def makePackage(fontpath, version=None, author=None, smufl=None, packageName=Non
     fontnames = []
     fontpaths = []
     if packageName != None and packageName != "":
-        header = _latexHeaderPartial(data["year"], data["author"], packageName)
+        header = _latexHeaderPartial(
+            data["year"], data["author"], data["version"], packageName)
         defcmds = ""
         commands = ""
         for val in fontData:
@@ -363,7 +364,8 @@ def makePackage(fontpath, version=None, author=None, smufl=None, packageName=Non
         for val in fontData:
             fontpaths.append(fontData[val]["fontpath"])
             fontnames.append(val)
-            header = _latexHeaderPartial(data["year"], data["author"], val)
+            header = _latexHeaderPartial(
+                data["year"], data["version"], data["author"], val)
             defcmds = _latexDefCommandsPartial(fontData[val])
             commands = _latexCommands(fontData[val]["fontpath"], smufl)
             styfiles.append(header + defcmds + commands)
