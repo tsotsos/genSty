@@ -183,7 +183,7 @@ def _latexRequirements(requirements):
     return reqstr
 
 
-def _latexDefCommands(fontname,forced=None):
+def _latexDefCommands(fontname, forced=None):
     """Creates command name, definition and command."""
 
     if forced != None:
@@ -194,13 +194,13 @@ def _latexDefCommands(fontname,forced=None):
     return (defCmd, fontname)
 
 
-def _latexCommands(fontfile, smufl,forcedName):
+def _latexCommands(fontfile, smufl, forcedName):
     """Generates LaTeX commands for each char code."""
     charcodes = retrieveCodes(fontfile, smufl)
     if not isinstance(charcodes, list):
         return False
     fontname = _fontName(fontfile)
-    cmds = _latexDefCommands(fontname,forcedName)
+    cmds = _latexDefCommands(fontname, forcedName)
     commands = "\n"
     for codepoint, desc in charcodes:
         commands += "\\"+cmds[0]+"{"+desc+"}{\\symbol{"+str(codepoint)+"}}\n"
@@ -252,11 +252,11 @@ def _optionalArguments(version, author):
     return version, author
 
 
-def _singleFontData(font, version,forcedName):
+def _singleFontData(font, version, forcedName):
     """Creates dict for single font to append into fonts dict on setupVariables
     hodling data for all fonts."""
     name = _fontName(font)
-    defcmd, cmd = _latexDefCommands(name,forcedName)
+    defcmd, cmd = _latexDefCommands(name, forcedName)
     return {
         'fontname': name,
         'fontnameN': _fontNameIdentifier(name),
@@ -268,7 +268,7 @@ def _singleFontData(font, version,forcedName):
     }
 
 
-def setupVariables(fontpath, version, author,forcedName):
+def setupVariables(fontpath, version, author, forcedName):
     """ Produces usable data for  font(s) and validates arguments. Used to
     create the final Style package."""
 
@@ -348,7 +348,7 @@ def savePackage(fontPackages):
 def makePackage(fontpath, version=None, author=None, smufl=None, packageName=None, forcedName=None):
     """After setupVariables() we can safely use them to create Style
     pacakage(s)."""
-    data = setupVariables(fontpath, version, author,forcedName)
+    data = setupVariables(fontpath, version, author, forcedName)
     fontData = data["fontnames"]
     result = {}
     styfiles = []
@@ -363,7 +363,8 @@ def makePackage(fontpath, version=None, author=None, smufl=None, packageName=Non
             fontpaths.append(fontData[val]["fontpath"])
             fontnames.append(val)
             defcmds += _latexDefCommandsPartial(fontData[val])
-            commands += _latexCommands(fontData[val]["fontpath"], smufl,forcedName)
+            commands += _latexCommands(fontData[val]
+                                       ["fontpath"], smufl, forcedName)
         styfiles.append(header + defcmds + commands)
     else:
         for val in fontData:
@@ -372,7 +373,8 @@ def makePackage(fontpath, version=None, author=None, smufl=None, packageName=Non
             header = _latexHeaderPartial(
                 data["year"], data["version"], data["author"], val)
             defcmds = _latexDefCommandsPartial(fontData[val])
-            commands = _latexCommands(fontData[val]["fontpath"], smufl,forcedName)
+            commands = _latexCommands(
+                fontData[val]["fontpath"], smufl, forcedName)
             styfiles.append(header + defcmds + commands)
 
     result = {
