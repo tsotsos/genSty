@@ -388,6 +388,7 @@ def main():
                         help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory')
     parser.add_argument('--smufl', '-s', type=str,
                         help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory based on glyphnames provided.')
+    parser.add_argument('--one-package', type=str, help='Creates one package with name provided by this argument.')
     parser.add_argument('--author', type=str, help='Author\'s name.')
     parser.add_argument('--ver', type=str, help='LaTeX package version.')
     args = parser.parse_args()
@@ -401,7 +402,7 @@ def main():
             "Error! flag --all must be defined along with directory only!")
 
     fontPackages = makePackage(
-        args.path, args.ver, args.author, args.smufl, "Bravura")
+        args.path, args.ver, args.author, args.smufl, args.one_package)
     # creates font package with folder stracture etc.
     savePackage(fontPackages)
 
