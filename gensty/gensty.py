@@ -19,24 +19,64 @@ __commands_template = 'resources/defcommands.sty'
 
 class fontStyle:
     def __init__(self, fontfile, smufl=None):
-        self.fontfile   = fontfile
-        self.name       = _fontName(fontfile)
-        self.smufl      = smufl
-        self.codepoints = self.retrieveCodes()
-        self.errors     = []
+        self.fontfile = fontfile
+        self.name = _fontName(fontfile)
+        self.smufl = smufl
+        self.codepoints = self.Codepoints()
+        self.errors = []
 
-    def retrieveCodes(self):
+    def __glyphnameParse(self):
+        """Parses glyphname file according w3c/smufl reference."""
+        result = []
+        with open(self.smufl) as json_file:
+            gnames = json.load(json_file)
+            for gname in gnames:
+                codepoint = gnames[gname]["codepoint"].replace("U+", "")
+                result.append((int(codepoint, 16), gname))
+        return result
+
+    def __fontCodepoints(self):
+        """Creates a dict of codepoints and names for every character/symbol in the
+        given font."""
+        font = ttLib.TTFont(self.fontfile)
+        charcodes = []
+        for x in font["cmap"].tables:
+            if not x.isUnicode():
+                continue
+            for y in x.cmap.items():
+                charcodes.append(y)
+        font.close()
+        sorted(charcodes)
+        return charcodes
+
+    def __fontCharList(self, charcodes, private=False, excluded=[]):
+        """Accepts list of tuples with charcodes and codepoints and returns
+        names and charcodes."""
+        if not isinstance(charcodes, list):
+            return False
+        result = []
+        for charcode, codepoint in charcodes:
+            description = _latexFriendlyName(Unicode[charcode])
+            if private == True and charcode >= 0xE000 and charcode <= 0xF8FF:
+                continue
+            if description in excluded:
+                continue
+            result.append((charcode, description))
+        return result
+
+    def Codepoints(self):
         """Retrieves the codepoints and symbols for the desired font, handles
         differently if its smufl font."""
         if self.smufl != None and _checkExtension(self.smufl, "json") == True:
-            charcodes = _glyphnameParse(self.smufl)
+            charcodes = self.__glyphnameParse()
             if len(charcodes) == 0:
                 self.errors.append("Empty glyphnames file.")
                 return False
             return charcodes
         else:
-            charcodes = _fontCodepoints(self.fontfile)
-            charcodes = _fontCharList(charcodes, excluded=["????", "Space"])
+            charcodes = self.__fontCodepoints()
+            charcodes = self.__fontCharList(charcodes,
+                                            excluded=["????", "Space"])
             if isinstance(charcodes, list):
                 return charcodes
             else:
@@ -155,36 +195,6 @@ def _fontNameIdentifier(fontname, prefix=True):
         return "fnt"+result
     return result
 
-
-def _fontCodepoints(fontfile):
-    """Creates a dict of codepoints and names for every character/symbol in the
-    given font."""
-    font = ttLib.TTFont(fontfile)
-    charcodes = []
-    for x in font["cmap"].tables:
-        if not x.isUnicode():
-            continue
-        for y in x.cmap.items():
-            charcodes.append(y)
-    font.close()
-    sorted(charcodes)
-    return charcodes
-
-
-def _fontCharList(charcodes, private=False, excluded=[]):
-    """Accepts list of tuples with charcodes and codepoints and returns
-    names and charcodes."""
-    if not isinstance(charcodes, list):
-        return False
-    result = []
-    for charcode, codepoint in charcodes:
-        description = _latexFriendlyName(Unicode[charcode])
-        if private == True and charcode >= 0xE000 and charcode <= 0xF8FF:
-            continue
-        if description in excluded:
-            continue
-        result.append((charcode, description))
-    return result
 
 def _latexFriendlyName(s):
     """Oneliner to return normalized name for LaTeX Style package."""
