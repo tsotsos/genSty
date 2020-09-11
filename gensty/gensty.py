@@ -205,14 +205,19 @@ def _latexCommands(fontfile, smufl):
     return commands
 
 
-def _latexTemplate(year, author, fontData, requirements=[]):
-    """Prepares LaTeX package header, initialization commands and requirements."""
+def _latexHeaderPartial(year, author, packageName):
+    """Fills header style partial."""
     tokens = {
-        'fontname': fontData["fontname"]+" Font",
-        'packageName': fontData["fontname"],
+        'packageName': packageName,
         'year': year,
         'author': author,
-        'description': fontData["description"],
+    }
+    return _makeTemplate("header.sty", tokens)
+
+
+def _latexDefCommandsPartial(fontData):
+    """Fills Commands definition style partial."""
+    tokens = {
         'fontfile': fontData["fontbase"],
         'fontspath': "fonts",
         'fontfamily': fontData["fontnameN"],
@@ -220,11 +225,8 @@ def _latexTemplate(year, author, fontData, requirements=[]):
         'defcommand': fontData["definition"],
         'command': fontData["command"],
     }
-    import pprint
-    pprint.pprint(fontData)
-    sys.exit()
-    output = _makeTemplate("template.sty",tokens)
-    return output
+    return _makeTemplate("defcommands.sty", tokens)
+
 
 def _makeTemplate(template, tokens):
     """Parses and replace tokens in template string."""
@@ -233,6 +235,7 @@ def _makeTemplate(template, tokens):
         template = templateFile.read()
         output = _ReplaceToken(tokens, template)
     return output
+
 
 def _optionalArguments(version, author):
     """Validates and ensure existance of optional arguments."""
@@ -315,36 +318,28 @@ def _singlePackage(fontpath, fontname, content):
     _writePackage(fontname+"/"+fontname, content)
 
 
-def savePackage(fontpaths, files):
-    """Creates the final package with style and font files."""
-    if not bool(files) or not bool(fontpaths):
-        raise Exception("Error, could not create font package.")
-    for fontname in files:
-        if fontname == "" or fontname == None:
-            raise Exception("Error could not find font name")
-        _singlePackage(fontpaths[fontname], fontname, files[fontname])
+def savePackage(fontPackages):
+    """Creates the final package with style and font files. Based on fontPackage
+    dict makePackage() produces."""
 
+    if not bool(fontPackages):
+        raise Exception("Error, could not create font package(s).")
+    import pprint
+    if fontPackages["packageName"] != None:
+        packageName = _fontNameIdentifier(fontPackages["packageName"],False)
+        packageFontsPath = packageName + "/fonts"
+        _createDir(packageName)
+        _createDir(packageFontsPath)
+        _writePackage(packageName+"/"+packageName, fontPackages["files"][0])
+        for font in fontPackages["fontfiles"]:
+            shutil.copy2(font, packageFontsPath)
+    else:
+        for idx, fontfile in enumerate(fontPackages["fontfiles"]):
+            _singlePackage(fontfile,
+                           fontPackages["fontnames"][idx],
+                           fontPackages["files"][idx])
 
-def _latexHeaderTemplate(year, author, packageName):
-    tokens = {
-        'packageName' : packageName,
-        'year' : year,
-        'author': author,
-    }
-    return _makeTemplate("header.sty",tokens)
-
-def _latexDefCmdsTemplate(fontData):
-    tokens = {
-        'fontfile' : fontData["fontbase"],
-        'fontspath': "fonts",
-        'fontfamily': fontData["fontnameN"],
-        'fntidentifier': fontData["fontnameN"],
-        'defcommand': fontData["definition"],
-        'command': fontData["command"],
-    }
-    return _makeTemplate("defcommands.sty",tokens)
-
-def makePackage(fontpath, version=None, author=None, smufl=None,packageName=None):
+def makePackage(fontpath, version=None, author=None, smufl=None, packageName=None):
     """After setupVariables() we can safely use them to create Style
     pacakage(s)."""
     data = setupVariables(fontpath, version, author)
@@ -354,29 +349,29 @@ def makePackage(fontpath, version=None, author=None, smufl=None,packageName=None
     fontnames = []
     fontpaths = []
     if packageName != None and packageName != "":
-        header = _latexHeaderTemplate(data["year"],data["author"],packageName)
+        header = _latexHeaderPartial(data["year"], data["author"], packageName)
         defcmds = ""
         commands = ""
         for val in fontData:
             fontpaths.append(fontData[val]["fontpath"])
             fontnames.append(val)
-            defcmds  += _latexDefCmdsTemplate(fontData[val])
-            commands += _latexCommands(fontData[val]["fontpath"],smufl)
-        styfiles.append( header + defcmds + commands )
+            defcmds += _latexDefCommandsPartial(fontData[val])
+            commands += _latexCommands(fontData[val]["fontpath"], smufl)
+        styfiles.append(header + defcmds + commands)
     else:
         for val in fontData:
             fontpaths.append(fontData[val]["fontpath"])
             fontnames.append(val)
-            header = _latexHeaderTemplate(data["year"],data["author"],val)
-            defcmds = _latexDefCmdsTemplate(fontData[val])
-            commands = _latexCommands(fontData[val]["fontpath"],smufl)
+            header = _latexHeaderPartial(data["year"], data["author"], val)
+            defcmds = _latexDefCommandsPartial(fontData[val])
+            commands = _latexCommands(fontData[val]["fontpath"], smufl)
             styfiles.append(header + defcmds + commands)
 
     result = {
-        'packageName' : packageName,
-        'fontsNumber' : len(fontpaths),
+        'packageName': packageName,
+        'fontsNumber': len(fontpaths),
         'fontnames': fontnames,
-        'fontFiles': fontpaths,
+        'fontfiles': fontpaths,
         'files': styfiles,
     }
     return result
@@ -406,11 +401,9 @@ def main():
             "Error! flag --all must be defined along with directory only!")
 
     fontPackages = makePackage(
-        args.path, args.ver, args.author, args.smufl,"Bravura")
-    import pprint
-    pprint.pprint(fontPackages)
+        args.path, args.ver, args.author, args.smufl, "Bravura")
     # creates font package with folder stracture etc.
-    # savePackage(fontpaths, files)
+    savePackage(fontPackages)
 
 
 if __name__ == "__main__":
