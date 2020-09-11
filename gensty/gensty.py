@@ -326,7 +326,7 @@ def savePackage(fontPackages):
         raise Exception("Error, could not create font package(s).")
     import pprint
     if fontPackages["packageName"] != None:
-        packageName = _fontNameIdentifier(fontPackages["packageName"],False)
+        packageName = _fontNameIdentifier(fontPackages["packageName"], False)
         packageFontsPath = packageName + "/fonts"
         _createDir(packageName)
         _createDir(packageFontsPath)
@@ -338,6 +338,7 @@ def savePackage(fontPackages):
             _singlePackage(fontfile,
                            fontPackages["fontnames"][idx],
                            fontPackages["files"][idx])
+
 
 def makePackage(fontpath, version=None, author=None, smufl=None, packageName=None):
     """After setupVariables() we can safely use them to create Style
@@ -388,7 +389,8 @@ def main():
                         help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory')
     parser.add_argument('--smufl', '-s', type=str,
                         help='If choosed %(prog)s will generate LaTeX Styles for all fonts in directory based on glyphnames provided.')
-    parser.add_argument('--one-package', type=str, help='Creates one package with name provided by this argument.')
+    parser.add_argument('--one-package', type=str,
+                        help='Creates one package with name provided by this argument.')
     parser.add_argument('--author', type=str, help='Author\'s name.')
     parser.add_argument('--ver', type=str, help='LaTeX package version.')
     args = parser.parse_args()
