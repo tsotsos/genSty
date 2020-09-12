@@ -4,7 +4,7 @@ import shutil
 from gensty import SUPPORTED_FONTS
 
 
-def _isFontPath(path):
+def isFontPath(path):
     """ Checks if the path is file or folder. In case of folder returns all
     included fonts."""
     if os.path.isfile(path):
@@ -15,11 +15,11 @@ def _isFontPath(path):
         raise Exception("Error. Path must be a valid file or folder.")
 
 
-def _findByExt(path, ext):
+def findByExt(path, ext):
     """Finds file by extension. Returns list."""
     files = []
     if os.path.isfile(path) == True:
-        if _checkExtension(path, ext) == True:
+        if checkExtension(path, ext) == True:
             files.append(path)
         else:
             return False
@@ -30,7 +30,7 @@ def _findByExt(path, ext):
     return files
 
 
-def _createDir(dir):
+def createDir(dir):
     """Forces directory creation by removing any pre-existing folder with same
     name."""
     if os.path.exists(dir):
@@ -38,7 +38,7 @@ def _createDir(dir):
     os.makedirs(dir)
 
 
-def _checkExtension(path, ext):
+def checkExtension(path, ext):
     """Defines if a file exists and its json."""
     if not os.path.isfile(path):
         return False
@@ -47,14 +47,14 @@ def _checkExtension(path, ext):
     return True
 
 
-def _writePackage(fontname, code):
+def writePackage(fontname, code):
     """Writes Style file."""
     sty = open(fontname+".sty", "w")
     sty.write(code)
     sty.close()
 
 
-def _ReplaceToken(dict_replace, target):
+def ReplaceToken(dict_replace, target):
     """Based on dict, replaces key with the value on the target."""
 
     for check, replacer in list(dict_replace.items()):
@@ -63,11 +63,11 @@ def _ReplaceToken(dict_replace, target):
     return target
 
 
-def _getFontsByType(path):
+def getFontsByType(path):
     """Gets supported fonts by file extesion in a given folder."""
     files = []
     for ext in SUPPORTED_FONTS:
-        fonts = _findByExt(path, ext)
+        fonts = findByExt(path, ext)
         if not isinstance(fonts, list):
             continue
         for font in fonts:
@@ -75,7 +75,7 @@ def _getFontsByType(path):
 
     return files
 
-def _fixString(s):
+def fixString(s):
     """Changes a string usually package or font name, so it can be use in
     LaTeX and parsed without issue."""
     return(" ".join(x.capitalize() for x in s.split(" ")).replace(" ", "").replace("-", ""))
