@@ -1,5 +1,7 @@
 import json
 import gensty.helpers as helpers
+from gensty import __author__,LATEX_REQUIREMENTS
+from datetime import datetime
 from fontTools import ttLib
 from fontTools.unicode import Unicode
 
@@ -99,60 +101,77 @@ class Info:
 
 
 class LaTeXstyle(Info):
-    def __init__(self, **kwds):
+    def __init__(self,version, author, **kwds):
         Info.__init__(self, **kwds)
-        self.Lname = self.name
 
-    def _latexDescription(fontname, version):
+        if version == None:
+            self.version = "v0.1"
+        else:
+            self.version = version
+        if author == None:
+            self.author  = __author__
+        else:
+            self.author  = author
+
+        self.year        = datetime.today().strftime('%Y')
+        self.packageName = None
+        self.forcedName  = None
+
+    def forcePackage (self, packageName):
+        self.__packageName = packageName
+
+    def setCommand (self, commandName):
+        self.__forcedCommand = commandName
+
+    def __description(self):
         """Creates default description text based on name and version."""
         currentDate = datetime.today().strftime('%Y-%m-%d')
-        return "%s %s LaTeX package for %s" % (currentDate, version, fontname)
+        return "%s %s LaTeX package for %s" % (currentDate, self.version, self.name)
 
-    def _latexRequirements(requirements):
+    def __requirements(self,requirements=[]):
         """Creates LaTeX package requirements. By default fontspec is nessessary."""
-        reqstr = "\\RequirePackage{fontspec}"
+        reqstr = ""
         if not isinstance(requirements, list):
             return reqstr
+        requirements = requirements + LATEX_REQUIREMENTS
         for pkg in requirements:
             if pkg == "fontspec":
                 continue
             reqstr += "\\RequirePackage{"+pkg+"}"
         return reqstr
 
-    def _latexDefCommands(fontname, forced=None):
+    def __defcommands(self, forced=None):
         """Creates command name, definition and command."""
 
         if forced != None:
             defCmd = "Define"+forced
             return (defCmd, forced)
 
-        defCmd = "Define"+fontname
-        return (defCmd, fontname)
+        defCmd = "Define"+self.name
+        return (defCmd, self.name)
 
-    def _latexCommands(fontfile, smufl, forcedName):
+    def __commands(self, forcedName):
         """Generates LaTeX commands for each char code."""
-        charcodes = retrieveCodes(fontfile, smufl)
-        if not isinstance(charcodes, list):
+        if not isinstance(self.codepoints, list):
             return False
-        fontname = _fontName(fontfile)
-        cmds = _latexDefCommands(fontname, forcedName)
+        cmds = self.__defcommands(forcedName)
         commands = "\n"
-        for codepoint, desc in charcodes:
+        for codepoint, desc in self.codepoints:
             commands += "\\"+cmds[0] + \
                 "{"+desc+"}{\\symbol{"+str(codepoint)+"}}\n"
         if commands == "\n":
-            raise Exception("Error. Cannot create LaTeX style commands")
+            return False
         return commands
 
-    def _latexHeaderPartial(year, author, version, packageName):
+    def Header(self):
         """Fills header style partial."""
         tokens = {
-            'packageName': packageName,
-            'description': _latexDescription(packageName, version),
-            'year': year,
-            'author': author,
+            'packageName': self.packageName,
+            'description': self.__description(),
+            'year': self.year,
+            'author': self.author,
         }
-        return _makeTemplate("header.sty", tokens)
+        return self._makeTemplate("header.sty", tokens)
 
     def _latexDefCommandsPartial(fontData):
         """Fills Commands definition style partial."""
