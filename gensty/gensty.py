@@ -3,12 +3,12 @@
 import os
 import sys
 import argparse
-from . import helpers
+import gensty.helpers as helpers
 from datetime import datetime
 
 __author__ = 'Georgios Tsotsos'
 __email__ = 'tsotsos@gmail.com'
-__version__ = '0.2.5'
+__version__ = '0.2.'
 
 
 

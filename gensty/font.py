@@ -167,6 +167,15 @@ class LaTeXstyle(Info):
             return False
         return commands
 
+    def __makeTemplate(self, template, tokens):
+        """Parses and replace tokens in template string."""
+        genstyPath = os.path.abspath(os.path.dirname(__file__))
+        with open(genstyPath+"/resources/"+template) as templateFile:
+            template = templateFile.read()
+            output = helpers.ReplaceToken(tokens, template)
+        return output
+
+
     def Header(self):
         """Fills header style partial."""
         tokens = {
@@ -175,7 +184,7 @@ class LaTeXstyle(Info):
             'year': self.year,
             'author': self.author,
         }
-        return self._makeTemplate(HEADER_TEMPLATE, tokens)
+        return self.__makeTemplate(HEADER_TEMPLATE, tokens)
 
     def Commands(self):
         """Fills Commands definition style partial."""
@@ -187,13 +196,4 @@ class LaTeXstyle(Info):
             'defcommand': self.defcommand,
             'command': self.command,
         }
-        return self._makeTemplate(COMMANDS_TEMPLATE, tokens)
-
-    def _makeTemplate(self, template, tokens):
-        """Parses and replace tokens in template string."""
-        genstyPath = os.path.abspath(os.path.dirname(__file__))
-        with open(genstyPath+"/resources/"+template) as templateFile:
-            template = templateFile.read()
-            output = helpers.ReplaceToken(tokens, template)
-        return output
-
+        return self.__makeTemplate(COMMANDS_TEMPLATE, tokens)
