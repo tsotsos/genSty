@@ -3,6 +3,7 @@ import gensty.helpers as helpers
 from fontTools import ttLib
 from fontTools.unicode import Unicode
 
+
 class Info:
     def __init__(self, fontfile, smufl=None):
         self.fontfile = fontfile
@@ -96,7 +97,88 @@ class Info:
                 self.errors.append("Error with parsing file.")
                 return False
 
+
 class LaTeXstyle(Info):
-    def __init__(self,**kwds):
-        Info.__init__(self,**kwds)
+    def __init__(self, **kwds):
+        Info.__init__(self, **kwds)
         self.Lname = self.name
+
+    def _latexDescription(fontname, version):
+        """Creates default description text based on name and version."""
+        currentDate = datetime.today().strftime('%Y-%m-%d')
+        return "%s %s LaTeX package for %s" % (currentDate, version, fontname)
+
+    def _latexRequirements(requirements):
+        """Creates LaTeX package requirements. By default fontspec is nessessary."""
+        reqstr = "\\RequirePackage{fontspec}"
+        if not isinstance(requirements, list):
+            return reqstr
+        for pkg in requirements:
+            if pkg == "fontspec":
+                continue
+            reqstr += "\\RequirePackage{"+pkg+"}"
+        return reqstr
+
+    def _latexDefCommands(fontname, forced=None):
+        """Creates command name, definition and command."""
+
+        if forced != None:
+            defCmd = "Define"+forced
+            return (defCmd, forced)
+
+        defCmd = "Define"+fontname
+        return (defCmd, fontname)
+
+    def _latexCommands(fontfile, smufl, forcedName):
+        """Generates LaTeX commands for each char code."""
+        charcodes = retrieveCodes(fontfile, smufl)
+        if not isinstance(charcodes, list):
+            return False
+        fontname = _fontName(fontfile)
+        cmds = _latexDefCommands(fontname, forcedName)
+        commands = "\n"
+        for codepoint, desc in charcodes:
+            commands += "\\"+cmds[0] + \
+                "{"+desc+"}{\\symbol{"+str(codepoint)+"}}\n"
+        if commands == "\n":
+            raise Exception("Error. Cannot create LaTeX style commands")
+        return commands
+
+    def _latexHeaderPartial(year, author, version, packageName):
+        """Fills header style partial."""
+        tokens = {
+            'packageName': packageName,
+            'description': _latexDescription(packageName, version),
+            'year': year,
+            'author': author,
+        }
+        return _makeTemplate("header.sty", tokens)
+
+    def _latexDefCommandsPartial(fontData):
+        """Fills Commands definition style partial."""
+        tokens = {
+            'fontfile': fontData["fontbase"],
+            'fontspath': "fonts",
+            'fontfamily': fontData["fontnameN"],
+            'fntidentifier': fontData["fontnameN"],
+            'defcommand': fontData["definition"],
+            'command': fontData["command"],
+        }
+        return _makeTemplate("defcommands.sty", tokens)
+
+    def _makeTemplate(template, tokens):
+        """Parses and replace tokens in template string."""
+        genstyPath = os.path.abspath(os.path.dirname(__file__))
+        with open(genstyPath+"/resources/"+template) as templateFile:
+            template = templateFile.read()
+            output = _ReplaceToken(tokens, template)
+        return output
+
+    def _optionalArguments(version, author):
+        """Validates and ensure existance of optional arguments."""
+        if version == None:
+            version = "v.0.1"
+        if author == None:
+            author = __author__
+
+        return version, author
