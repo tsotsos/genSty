@@ -1,6 +1,7 @@
+import os
 import json
 import gensty.helpers as helpers
-from gensty import __author__,LATEX_REQUIREMENTS
+from gensty import __author__, LATEX_REQUIREMENTS, HEADER_TEMPLATE, COMMANDS_TEMPLATE,FONTDIR
 from datetime import datetime
 from fontTools import ttLib
 from fontTools.unicode import Unicode
@@ -9,6 +10,7 @@ from fontTools.unicode import Unicode
 class Info:
     def __init__(self, fontfile, smufl=None):
         self.fontfile = fontfile
+        self.fontfileBase = os.path.basename(fontfile)
         self.smufl = smufl
         self.name = self.__getName()
         self.codepoints = self.Codepoints()
@@ -64,7 +66,7 @@ class Info:
             return False
         result = []
         for charcode, codepoint in charcodes:
-            description = helpers._fixString(Unicode[charcode])
+            description = helpers.fixString(Unicode[charcode])
             if private == True and charcode >= 0xE000 and charcode <= 0xF8FF:
                 continue
             if description in excluded:
@@ -83,7 +85,7 @@ class Info:
     def Codepoints(self):
         """Retrieves the codepoints and symbols for the desired font, handles
         differently if its smufl font."""
-        if self.smufl != None and helpers._checkExtension(self.smufl, "json") == True:
+        if self.smufl != None and helpers.checkExtension(self.smufl, "json") == True:
             charcodes = self.__glyphnameParse()
             if len(charcodes) == 0:
                 self.errors.append("Empty glyphnames file.")
@@ -101,7 +103,7 @@ class Info:
 
 
 class LaTeXstyle(Info):
-    def __init__(self,version, author, **kwds):
+    def __init__(self, version, author, **kwds):
         Info.__init__(self, **kwds)
 
         if version == None:
@@ -109,18 +111,21 @@ class LaTeXstyle(Info):
         else:
             self.version = version
         if author == None:
-            self.author  = __author__
+            self.author = __author__
         else:
-            self.author  = author
+            self.author = author
 
-        self.year        = datetime.today().strftime('%Y')
+        cmds = self.__defcommands()
+        self.year = datetime.today().strftime('%Y')
         self.packageName = None
-        self.forcedName  = None
+        self.forcedName = None
+        self.defcommand = cmds[0]
+        self.command = cmds[1]
 
-    def forcePackage (self, packageName):
+    def forcePackage(self, packageName):
         self.__packageName = packageName
 
-    def setCommand (self, commandName):
+    def setCommand(self, commandName):
         self.__forcedCommand = commandName
 
     def __description(self):
@@ -128,7 +133,7 @@ class LaTeXstyle(Info):
         currentDate = datetime.today().strftime('%Y-%m-%d')
         return "%s %s LaTeX package for %s" % (currentDate, self.version, self.name)
 
-    def __requirements(self,requirements=[]):
+    def __requirements(self, requirements=[]):
         """Creates LaTeX package requirements. By default fontspec is nessessary."""
         reqstr = ""
         if not isinstance(requirements, list):
@@ -140,12 +145,12 @@ class LaTeXstyle(Info):
             reqstr += "\\RequirePackage{"+pkg+"}"
         return reqstr
 
-    def __defcommands(self, forced=None):
+    def __defcommands(self):
         """Creates command name, definition and command."""
 
-        if forced != None:
-            defCmd = "Define"+forced
-            return (defCmd, forced)
+        if self.forcedName != None:
+            defCmd = "Define"+self.forcedName
+            return (defCmd, self.forcedName)
 
         defCmd = "Define"+self.name
         return (defCmd, self.name)
@@ -154,10 +159,9 @@ class LaTeXstyle(Info):
         """Generates LaTeX commands for each char code."""
         if not isinstance(self.codepoints, list):
             return False
-        cmds = self.__defcommands(forcedName)
         commands = "\n"
         for codepoint, desc in self.codepoints:
-            commands += "\\"+cmds[0] + \
+            commands += "\\" + self.defcommand + \
                 "{"+desc+"}{\\symbol{"+str(codepoint)+"}}\n"
         if commands == "\n":
             return False
@@ -171,33 +175,25 @@ class LaTeXstyle(Info):
             'year': self.year,
             'author': self.author,
         }
-        return self._makeTemplate("header.sty", tokens)
+        return self._makeTemplate(HEADER_TEMPLATE, tokens)
 
-    def _latexDefCommandsPartial(fontData):
+    def Commands(self):
         """Fills Commands definition style partial."""
         tokens = {
-            'fontfile': fontData["fontbase"],
-            'fontspath': "fonts",
-            'fontfamily': fontData["fontnameN"],
-            'fntidentifier': fontData["fontnameN"],
-            'defcommand': fontData["definition"],
-            'command': fontData["command"],
+            'fontfile': self.fontfileBase,
+            'fontspath': FONTDIR,
+            'fontfamily': self.Identifier(),
+            'fntidentifier': self.Identifier(),
+            'defcommand': self.defcommand,
+            'command': self.command,
         }
-        return _makeTemplate("defcommands.sty", tokens)
+        return self._makeTemplate(COMMANDS_TEMPLATE, tokens)
 
-    def _makeTemplate(template, tokens):
+    def _makeTemplate(self, template, tokens):
         """Parses and replace tokens in template string."""
         genstyPath = os.path.abspath(os.path.dirname(__file__))
         with open(genstyPath+"/resources/"+template) as templateFile:
             template = templateFile.read()
-            output = _ReplaceToken(tokens, template)
+            output = helpers.ReplaceToken(tokens, template)
         return output
 
-    def _optionalArguments(version, author):
-        """Validates and ensure existance of optional arguments."""
-        if version == None:
-            version = "v.0.1"
-        if author == None:
-            author = __author__
-
-        return version, author
