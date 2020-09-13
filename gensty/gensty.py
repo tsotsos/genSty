@@ -1,79 +1,16 @@
-#!/usr/bin/env python
-"""gensty - Latex package generator ttf/otf and SMuFL."""
+"""Gensty module - Latex package generator ttf/otf and SMuFL."""
 import os
 import sys
 import argparse
-import gensty.helpers as helpers
+import helpers
+import config
+import font
 from datetime import datetime
 
-__author__ = 'Georgios Tsotsos'
-__email__ = 'tsotsos@gmail.com'
-__version__ = '0.2.'
-
-
-
-def _singleFontData(font, version, forcedName):
-    """Creates dict for single font to append into fonts dict on setupVariables
-    hodling data for all fonts."""
-    name = _fontName(font)
-    defcmd, cmd = _latexDefCommands(name, forcedName)
-    return {
-        'fontname': name,
-        'fontnameN': _fontNameIdentifier(name),
-        'fontpath': font,
-        'fontbase': os.path.basename(font),
-        'description': _latexDescription(name, version),
-        'definition': defcmd,
-        'command': cmd
-    }
-
-
-def setupVariables(fontpath, version, author, forcedName):
-    """ Produces usable data for  font(s) and validates arguments. Used to
-    create the final Style package."""
-
-    # optional arguments.
-    version, author = _optionalArguments(version, author)
-
-    path = _isFontPath(fontpath)
-    fonts = _getFontsByType(fontpath)
-
-    if not isinstance(fonts, list):
-        raise Exception("Error could not retrieve fonts.")
-    # font specific data.
-    fontnames = {}
-    for font in fonts:
-        fontnames[_fontName(font)] = _singleFontData(font, version, forcedName)
-
-    if len(fontnames) == 0:
-        raise Exception("Error could not retrieve fonts.")
-
-    return {
-        'isfile': path,
-        'year': datetime.today().strftime('%Y'),
-        'author': author,
-        'version': version,
-        'fontnames': fontnames,
-        'totalFonts': len(fonts),
-    }
-
-
-def retrieveCodes(filepath, smufl):
-    """Retrieves the codepoints and symbols for the desired font, handles
-    differently if its smufl font."""
-    if smufl != None and _checkExtension(smufl, "json") == False:
-        raise Exception("Error! Please provide a valid smufl json file")
-    elif smufl != None and _checkExtension(smufl, "json") == True:
-        return _glyphnameParse(smufl)
-    else:
-        charcodes = _fontCodepoints(filepath)
-        charcodes = _fontCharList(charcodes, excluded=["????", "Space"])
-        if isinstance(charcodes, list):
-            return charcodes
-        else:
-            raise Exception("Uknown font parse error")
-
-
+from pprint import pprint
+latex = font.LaTeXstyle(fontfile="testdata/fonts/Bravura.otf",smufl="testdata/glyphnames.json")
+pprint(latex.File())
+sys.exit()
 def _singlePackage(fontpath, fontname, content):
     """Creates a single package folder and its files."""
     _createDir(fontname)
@@ -151,7 +88,7 @@ def main():
     parser = argparse.ArgumentParser(
         prog='genSty', description="LaTeX Style file generator for fonts")
     parser.add_argument('--version', '-v', action='version',
-                        version='%(prog)s ' + __version__)
+                        version='%(prog)s ' + config.__version__)
     parser.add_argument('path',
                         help='Font(s) path. It can be either a directory in case of multiple fonts or file path.')
     parser.add_argument('--all', '-a', action="store_true",
@@ -174,7 +111,7 @@ def main():
         raise Exception(
             "Error! flag --all must be defined along with directory only!")
 
-    if args.smufl != None and _checkExtension(args.smufl, "json") == False:
+    if args.smufl != None and helpers.checkExtension(args.smufl, "json") == False:
         raise Exception("Error! Please provide a valid smufl json file")
 
     fontPackages = makePackage(
