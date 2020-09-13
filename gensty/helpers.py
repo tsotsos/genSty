@@ -1,8 +1,6 @@
 import os
 import sys
 import shutil
-from gensty import SUPPORTED_FONTS
-
 
 def isFontPath(path):
     """ Checks if the path is file or folder. In case of folder returns all
@@ -63,10 +61,10 @@ def ReplaceToken(dict_replace, target):
     return target
 
 
-def getFontsByType(path):
+def getFontsByType(path,supported_fonts=[]):
     """Gets supported fonts by file extesion in a given folder."""
     files = []
-    for ext in SUPPORTED_FONTS:
+    for ext in supported_fonts:
         fonts = findByExt(path, ext)
         if not isinstance(fonts, list):
             continue
