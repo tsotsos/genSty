@@ -35,6 +35,12 @@ def createDir(dir):
         shutil.rmtree(dir)
     os.makedirs(dir)
 
+def checkFont(path, supported_fonts):
+    """Checks the provided file has one fo the supported extensions."""
+    for ext in supported_fonts:
+        if checkExtension(path,ext) == True:
+            return True
+    return False
 
 def checkExtension(path, ext):
     """Defines if a file exists and its json."""
