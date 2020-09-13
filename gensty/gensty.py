@@ -78,10 +78,10 @@ def savePackage(names, fontfiles, files, packageName):
 
     if packageName != None and packageName != "":
         helpers.createDir(packageName)
-        fontpath = packageName + config.FONTDIR
+        fontpath = packageName +"/"+ config.FONTDIR
         helpers.createDir(fontpath)
         if len(fontfiles) > 0 and len(files) > 0:
-            for idx, pkg in files:
+            for idx, pkg in enumerate(files):
                 shutil.copy2(fontfiles[idx], fontpath)
                 helpers.writePackage(packageName,pkg)
         else:
