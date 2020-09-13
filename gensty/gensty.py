@@ -1,6 +1,7 @@
 """Gensty module - Latex package generator ttf/otf and SMuFL."""
 import os
 import sys
+import shutil
 import argparse
 import helpers
 import config
@@ -8,6 +9,14 @@ import font
 from datetime import datetime
 
 from pprint import pprint
+
+def __saveSinglePackage(fontname, fontpath, content):
+    """Creates a single package folder and its files."""
+    helpers.createDir(fontname)
+    packageFontsPath = fontname +"/"+ config.FONTDIR
+    helpers.createDir(packageFontsPath)
+    shutil.copy2(fontpath, packageFontsPath)
+    helpers.writePackage(fontname+"/"+fontname, content)
 
 
 def prepareFonts(path, ver, author, smufl):
@@ -32,6 +41,7 @@ def makePackage(fonts, packageName=None, forcedCommand=None):
         raise Exception("Error. Please provide list of LaTeXstyle instances!")
     files     = []
     fontfiles = []
+    names     = []
     if packageName != None and packageName != "":
         header = ""
         defcommands = ""
@@ -43,7 +53,7 @@ def makePackage(fonts, packageName=None, forcedCommand=None):
             defcommands += pkg.DefCommands()
             commands    += pkg.Commands()
             fontfiles.append(pkg.fontfile)
-
+            names.append(pkg.name)
         files.append(header + defcommands + commands)
     else:
         for pkg in fonts:
@@ -53,8 +63,32 @@ def makePackage(fonts, packageName=None, forcedCommand=None):
             commands    = pkg.Commands()
             files.append(header + defcommands + commands)
             fontfiles.append(pkg.fontfile)
+            names.append(pkg.name)
 
-    return fontfiles, files
+    return names,fontfiles,files
+
+def savePackage(names, fontfiles, files, packageName):
+    """Saves packages to disk, creating the appropriate folder structure.
+    cases explained:
+        1. Named package, single font
+        2. Named package, multiple fonts
+        3. single font, same package name
+        4. multiple fonts, same package names
+    """
+
+    if packageName != None and packageName != "":
+        helpers.createDir(packageName)
+        fontpath = packageName + config.FONTDIR
+        helpers.createDir(fontpath)
+        if len(fontfiles) > 0 and len(files) > 0:
+            for idx, pkg in files:
+                shutil.copy2(fontfiles[idx], fontpath)
+                helpers.writePackage(packageName,pkg)
+        else:
+            raise Exception("Unknown Error!")
+    else:
+        for idx, pkg in enumerate(files):
+            __saveSinglePackage(names[idx],fontfiles[idx],pkg)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -93,10 +127,9 @@ def main():
 
     # prepare fonts.
     fonts = prepareFonts(args.path, args.ver, args.author, args.smufl)
-    fontfiles, packages = makePackage(fonts, args.one_package, args.force_name)
-    savePackage(fontfiles, packages)
+    fontnames, fontfiles,files = makePackage(fonts, args.one_package, args.force_name)
     # creates font package with folder stracture etc.
-    # savePackage(fontPackages)
+    savePackage(fontnames, fontfiles, files ,packageName=args.one_package)
 
 
 if __name__ == "__main__":
