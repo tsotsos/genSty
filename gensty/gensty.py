@@ -27,25 +27,34 @@ def prepareFonts(path, ver, author, smufl):
     return fonts
 
 def makePackage(fonts, packageName=None, forcedCommand=None):
+    """Creates two lists, one for font files and another for latex files."""
     if not isinstance(fonts,list) or len(fonts) == 0 :
         raise Exception("Error. Please provide list of LaTeXstyle instances!")
-
-    #handle single package case
+    files     = []
+    fontfiles = []
     if packageName != None and packageName != "":
         header = ""
         defcommands = ""
         commands = ""
         for pkg in fonts:
             pkg.setPackage(packageName)
-            if forcedCommand != None and forcedCommand != "":
-                pkg.setCommand = forcedCommand
-            header = pkg.Header()
+            pkg.setCommand(forcedCommand)
+            header      = pkg.Header()
             defcommands += pkg.DefCommands()
-            commands += pkg.Commands()
+            commands    += pkg.Commands()
+            fontfiles.append(pkg.fontfile)
 
-        output = header + defcommands + commands
-        print(output)
+        files.append(header + defcommands + commands)
+    else:
+        for pkg in fonts:
+            pkg.setCommand(forcedCommand)
+            header      = pkg.Header()
+            defcommands = pkg.DefCommands()
+            commands    = pkg.Commands()
+            files.append(header + defcommands + commands)
+            fontfiles.append(pkg.fontfile)
 
+    return fontfiles, files
 
 def main():
     parser = argparse.ArgumentParser(
@@ -84,7 +93,8 @@ def main():
 
     # prepare fonts.
     fonts = prepareFonts(args.path, args.ver, args.author, args.smufl)
-    makePackage(fonts, args.one_package, args.force_name)
+    fontfiles, packages = makePackage(fonts, args.one_package, args.force_name)
+    savePackage(fontfiles, packages)
     # creates font package with folder stracture etc.
     # savePackage(fontPackages)
 
