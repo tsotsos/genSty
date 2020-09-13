@@ -8,80 +8,43 @@ import font
 from datetime import datetime
 
 from pprint import pprint
-latex = font.LaTeXstyle(fontfile="testdata/fonts/Bravura.otf",smufl="testdata/glyphnames.json")
-pprint(latex.File())
-sys.exit()
-def _singlePackage(fontpath, fontname, content):
-    """Creates a single package folder and its files."""
-    _createDir(fontname)
-    packageFontsPath = fontname + "/fonts"
-    _createDir(packageFontsPath)
-    shutil.copy2(fontpath, packageFontsPath)
-    _writePackage(fontname+"/"+fontname, content)
 
 
-def savePackage(fontPackages):
-    """Creates the final package with style and font files. Based on fontPackage
-    dict makePackage() produces."""
+def prepareFonts(path, ver, author, smufl):
+    """ Creates latexStyle instances in a list and returns it"""
+    fonts = []
 
-    if not bool(fontPackages):
-        raise Exception("Error, could not create font package(s).")
-    import pprint
-    if fontPackages["packageName"] != None:
-        packageName = fontPackages["packageName"]
-        packageFontsPath = packageName + "/fonts"
-        _createDir(packageName)
-        _createDir(packageFontsPath)
-        _writePackage(packageName+"/"+packageName, fontPackages["files"][0])
-        for font in fontPackages["fontfiles"]:
-            shutil.copy2(font, packageFontsPath)
+    if os.path.isdir(path) == True:
+        fontfiles = helpers.getFontsByType(path, config.SUPPORTED_FONTS)
+        for ffile in fontfiles:
+            fonts.append(font.LaTeXstyle(
+                version=ver, author=author, fontfile=ffile, smufl=smufl))
+    elif helpers.checkFont(path,config.SUPPORTED_FONTS) == True:
+        fonts.append(font.LaTeXstyle(
+            version=ver, author=author, fontfile=path, smufl=smufl))
     else:
-        for idx, fontfile in enumerate(fontPackages["fontfiles"]):
-            _singlePackage(fontfile,
-                           fontPackages["fontnames"][idx],
-                           fontPackages["files"][idx])
+        raise Exception("Unhandled operation!")
+    return fonts
 
+def makePackage(fonts, packageName=None, forcedCommand=None):
+    if not isinstance(fonts,list) or len(fonts) == 0 :
+        raise Exception("Error. Please provide list of LaTeXstyle instances!")
 
-def makePackage(fontpath, version=None, author=None, smufl=None, packageName=None, forcedName=None):
-    """After setupVariables() we can safely use them to create Style
-    pacakage(s)."""
-    data = setupVariables(fontpath, version, author, forcedName)
-    fontData = data["fontnames"]
-    result = {}
-    styfiles = []
-    fontnames = []
-    fontpaths = []
+    #handle single package case
     if packageName != None and packageName != "":
-        header = _latexHeaderPartial(
-            data["year"], data["author"], data["version"], packageName)
-        defcmds = ""
+        header = ""
+        defcommands = ""
         commands = ""
-        for val in fontData:
-            fontpaths.append(fontData[val]["fontpath"])
-            fontnames.append(val)
-            defcmds += _latexDefCommandsPartial(fontData[val])
-            commands += _latexCommands(fontData[val]
-                                       ["fontpath"], smufl, forcedName)
-        styfiles.append(header + defcmds + commands)
-    else:
-        for val in fontData:
-            fontpaths.append(fontData[val]["fontpath"])
-            fontnames.append(val)
-            header = _latexHeaderPartial(
-                data["year"], data["version"], data["author"], val)
-            defcmds = _latexDefCommandsPartial(fontData[val])
-            commands = _latexCommands(
-                fontData[val]["fontpath"], smufl, forcedName)
-            styfiles.append(header + defcmds + commands)
+        for pkg in fonts:
+            pkg.setPackage(packageName)
+            if forcedCommand != None and forcedCommand != "":
+                pkg.setCommand = forcedCommand
+            header = pkg.Header()
+            defcommands += pkg.DefCommands()
+            commands += pkg.Commands()
 
-    result = {
-        'packageName': packageName,
-        'fontsNumber': len(fontpaths),
-        'fontnames': fontnames,
-        'fontfiles': fontpaths,
-        'files': styfiles,
-    }
-    return result
+        output = header + defcommands + commands
+        print(output)
 
 
 def main():
@@ -111,13 +74,19 @@ def main():
         raise Exception(
             "Error! flag --all must be defined along with directory only!")
 
+    if helpers.checkFont(args.path, config.SUPPORTED_FONTS) == False and os.path.isdir(args.path) == False:
+        raise Exception(
+            "Error! path should be a valid font file (%s) or directory."
+            % ','.join(config.SUPPORTED_FONTS))
+
     if args.smufl != None and helpers.checkExtension(args.smufl, "json") == False:
         raise Exception("Error! Please provide a valid smufl json file")
 
-    fontPackages = makePackage(
-        args.path, args.ver, args.author, args.smufl, args.one_package, args.force_name)
+    # prepare fonts.
+    fonts = prepareFonts(args.path, args.ver, args.author, args.smufl)
+    makePackage(fonts, args.one_package, args.force_name)
     # creates font package with folder stracture etc.
-    savePackage(fontPackages)
+    # savePackage(fontPackages)
 
 
 if __name__ == "__main__":
