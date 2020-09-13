@@ -111,7 +111,9 @@ class LaTeXstyle(Info):
         fontfile = kwargs.get('fontfile',None)
         smufl = kwargs.get('smufl',None)
         Info.__init__(self,fontfile,smufl)
-
+        if len(self.errors) > 0:
+            print(self.errors)
+            pass
         if version == None:
             self.version = "v0.1"
         else:
@@ -141,10 +143,8 @@ class LaTeXstyle(Info):
         reqstr = ""
         if not isinstance(requirements, list):
             return reqstr
-        requirements = requirements + LATEX_REQUIREMENTS
+        reqstr = ""
         for pkg in requirements:
-            if pkg == "fontspec":
-                continue
             reqstr += "\\RequirePackage{"+pkg+"}"
         return reqstr
 
@@ -157,19 +157,6 @@ class LaTeXstyle(Info):
 
         defCmd = "Define"+self.name
         return (defCmd, self.name)
-
-    def __commands(self, forcedName):
-        """Generates LaTeX commands for each char code."""
-        if not isinstance(self.codepoints, list):
-            return False
-        commands = "\n"
-        defcommand, _ = self.__defcommands()
-        for codepoint, desc in self.codepoints:
-            commands += "\\" + defcommand + \
-                "{"+desc+"}{\\symbol{"+str(codepoint)+"}}\n"
-        if commands == "\n":
-            return False
-        return commands
 
     def __makeTemplate(self, template, tokens):
         """Parses and replace tokens in template string."""
@@ -189,10 +176,11 @@ class LaTeXstyle(Info):
             'description': self.__description(),
             'year': self.year,
             'author': self.author,
+            'requirements': self.__requirements(LATEX_REQUIREMENTS)
         }
         return self.__makeTemplate(HEADER_TEMPLATE, tokens)
 
-    def Commands(self):
+    def DefCommands(self):
         """Fills Commands definition style partial."""
         defcommand,command = self.__defcommands()
         tokens = {
@@ -204,3 +192,22 @@ class LaTeXstyle(Info):
             'command': command,
         }
         return self.__makeTemplate(COMMANDS_TEMPLATE, tokens)
+
+    def Commands(self):
+        """Generates LaTeX commands for each char code."""
+        if not isinstance(self.codepoints, list):
+            return False
+        commands = "\n"
+        defcommand, _ = self.__defcommands()
+        for codepoint, desc in self.codepoints:
+            commands += "\\" + defcommand + \
+                "{"+desc+"}{\\symbol{"+str(codepoint)+"}}\n"
+        if commands == "\n":
+            return False
+        return commands
+
+    def File(self):
+        header      = self.Header()
+        definitions = self.DefCommands()
+        commands    = self.Commands()
+        return header + definitions + commands
