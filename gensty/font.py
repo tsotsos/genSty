@@ -1,10 +1,11 @@
+from fontTools.unicode import Unicode
+from fontTools import ttLib
+from datetime import datetime
 import os
 import json
-import gensty.helpers as helpers
-from gensty import __author__, LATEX_REQUIREMENTS, HEADER_TEMPLATE, COMMANDS_TEMPLATE,FONTDIR
-from datetime import datetime
-from fontTools import ttLib
-from fontTools.unicode import Unicode
+import helpers
+from config import FONTDIR, SUPPORTED_FONTS, COMMANDS_TEMPLATE, HEADER_TEMPLATE
+from config import LATEX_REQUIREMENTS, __author__
 
 
 class Info:
@@ -103,8 +104,8 @@ class Info:
 
 
 class LaTeXstyle(Info):
-    def __init__(self, version, author, **kwds):
-        Info.__init__(self, **kwds)
+    def __init__(self, version, author, *args):
+        Info.__init__(self,*args)
 
         if version == None:
             self.version = "v0.1"
@@ -115,18 +116,15 @@ class LaTeXstyle(Info):
         else:
             self.author = author
 
-        cmds = self.__defcommands()
-        self.year = datetime.today().strftime('%Y')
         self.packageName = None
         self.forcedName = None
-        self.defcommand = cmds[0]
-        self.command = cmds[1]
+        self.year = datetime.today().strftime('%Y')
 
-    def forcePackage(self, packageName):
-        self.__packageName = packageName
+    def setPackage(self, packageName):
+        self.packageName = packageName
 
     def setCommand(self, commandName):
-        self.__forcedCommand = commandName
+        self.forcedCommand = commandName
 
     def __description(self):
         """Creates default description text based on name and version."""
@@ -160,8 +158,9 @@ class LaTeXstyle(Info):
         if not isinstance(self.codepoints, list):
             return False
         commands = "\n"
+        defcommand, _ = self.__defcommands()
         for codepoint, desc in self.codepoints:
-            commands += "\\" + self.defcommand + \
+            commands += "\\" + defcommand + \
                 "{"+desc+"}{\\symbol{"+str(codepoint)+"}}\n"
         if commands == "\n":
             return False
@@ -175,7 +174,6 @@ class LaTeXstyle(Info):
             output = helpers.ReplaceToken(tokens, template)
         return output
 
-
     def Header(self):
         """Fills header style partial."""
         tokens = {
@@ -188,6 +186,7 @@ class LaTeXstyle(Info):
 
     def Commands(self):
         """Fills Commands definition style partial."""
+        defcommand,command = self.__defcommands()
         tokens = {
             'fontfile': self.fontfileBase,
             'fontspath': FONTDIR,
