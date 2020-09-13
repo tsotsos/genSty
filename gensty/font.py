@@ -10,12 +10,15 @@ from config import LATEX_REQUIREMENTS, __author__
 
 class Info:
     def __init__(self, fontfile, smufl=None):
+        self.errors = []
         self.fontfile = fontfile
+        if helpers.checkFont(fontfile,SUPPORTED_FONTS) == False:
+            self.errors.append("Could not file font file, or not supported")
+            pass
         self.fontfileBase = os.path.basename(fontfile)
         self.smufl = smufl
         self.name = self.__getName()
         self.codepoints = self.Codepoints()
-        self.errors = []
 
     def __getName(self):
         """Get the name from the font's names table.
@@ -104,8 +107,10 @@ class Info:
 
 
 class LaTeXstyle(Info):
-    def __init__(self, version, author, *args):
-        Info.__init__(self,*args)
+    def __init__(self, version=None, author=None, **kwargs):
+        fontfile = kwargs.get('fontfile',None)
+        smufl = kwargs.get('smufl',None)
+        Info.__init__(self,fontfile,smufl)
 
         if version == None:
             self.version = "v0.1"
@@ -169,13 +174,16 @@ class LaTeXstyle(Info):
     def __makeTemplate(self, template, tokens):
         """Parses and replace tokens in template string."""
         genstyPath = os.path.abspath(os.path.dirname(__file__))
-        with open(genstyPath+"/resources/"+template) as templateFile:
+        with open(genstyPath+"/"+template) as templateFile:
             template = templateFile.read()
             output = helpers.ReplaceToken(tokens, template)
         return output
 
     def Header(self):
         """Fills header style partial."""
+        if self.packageName == None:
+            self.packageName = self.name
+
         tokens = {
             'packageName': self.packageName,
             'description': self.__description(),
@@ -192,7 +200,7 @@ class LaTeXstyle(Info):
             'fontspath': FONTDIR,
             'fontfamily': self.Identifier(),
             'fntidentifier': self.Identifier(),
-            'defcommand': self.defcommand,
-            'command': self.command,
+            'defcommand': defcommand,
+            'command': command,
         }
         return self.__makeTemplate(COMMANDS_TEMPLATE, tokens)
