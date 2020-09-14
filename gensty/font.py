@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+"""Gensty fonts. Classes making the essential job for handling font information
+and creating LaTeX style package."""
 import os
 import json
 from fontTools.unicode import Unicode
