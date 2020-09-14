@@ -31,7 +31,7 @@ class Info:
             smufl (str,optional): sMuFL glyphnames.json file.
 
         Returns:
-            None: Constructor.
+             Constructor.
         """
         self.errors: list = []
         self.fontfile: str = fontfile
@@ -43,8 +43,11 @@ class Info:
         self.codepoints: str = self.Codepoints()
 
     def __getName(self) -> str:
-        """Get the name from the font's names table.
-        Customized function, original retrieved from: https://bit.ly/3lS4nMO
+        """__getName. Get the name from the font's names table. Customized
+        function based on original retrieved from: https://bit.ly/3lS4nMO
+
+        Returns:
+            Font name.
         """
         name = ""
         font = ttLib.TTFont(self.fontfile)
@@ -57,12 +60,16 @@ class Info:
                     if name:
                         break
         font.close()
-        # TODO: test for issues with multiple fonts
         name = name.decode('utf-8')
         return name.replace(" ", "").replace("-", "")
 
-    def __glyphnameParse(self) -> list:
-        """Parses glyphname file according w3c/smufl reference."""
+    def __glyphnameParse(self) -> List[Tuple[str, str]]:
+        """__glyphnameParse. Parses glyphname file according w3c/smufl
+        reference.
+
+        Returns:
+            A list of  codepoint and their description.
+        """
         result = []
         with open(self.__smufl) as json_file:
             gnames = json.load(json_file)
@@ -71,9 +78,13 @@ class Info:
                 result.append((int(codepoint, 16), gname))
         return result
 
-    def __fontCodepoints(self) -> list:
-        """Creates a dict of codepoints and names for every character/symbol in the
-        given font."""
+    def __fontCodepoints(self) -> List[Tuple[int, str]]:
+        """__fontCodepoints. Creates a list of codepoints and names for every
+        character/symbol in the given font.
+
+        Returns:
+            A list of Tuples with condpoints and UTF-8 description.
+        """
         font = ttLib.TTFont(self.fontfile)
         charcodes = []
         for x in font["cmap"].tables:
@@ -85,9 +96,20 @@ class Info:
         sorted(charcodes)
         return charcodes
 
-    def __fontCharList(self, charcodes: list, private: str = False, excluded: list = []) -> List[Tuple[str, str]]:
-        """Accepts list of tuples with charcodes and codepoints and returns
-        names and charcodes."""
+    def __fontCharList(self, charcodes: list, private: bool = False,
+                       excluded: list = []) -> List[Tuple[str, str]]:
+        """__fontCharList. Accepts list of tuples with charcodes and codepoints
+        and returns names and charcodes.
+
+        Args:
+            charcodes (list): Codepoints/Symbols created by
+            func:`~gensty.font.LaTeXstyle.__fontCodepoints`
+            private (bool): Allow private symbols.
+            excluded (list): List of excluded symbols.
+
+        Returns:
+            List of codepoints and description.
+        """
         if not isinstance(charcodes, list):
             return False
         result = []
@@ -100,17 +122,28 @@ class Info:
             result.append((charcode, description))
         return result
 
-    def Identifier(self, prefix: str = True) -> str:
-        """Removes spaces and forces lowercase for font name, by default adds prefix
-        'fnt' so we can avoid issues with simmilar names in other LaTeX packages."""
+    def Identifier(self, prefix: bool = True) -> str:
+        """Identifier. Removes spaces and forces lowercase for font name, by
+        default adds prefix 'fnt' so we can avoid issues with identical names.
+
+        Args:
+            prefix (bool): Font prefix.
+
+        Returns:
+            Font name identifier.
+        """
         result = self.name.lower().replace(" ", "")
         if prefix == True:
             return "fnt"+result
         return result
 
-    def Codepoints(self) -> List[Tuple[str, str]]:
-        """Retrieves the codepoints and symbols for the desired font, handles
-        differently if its smufl font."""
+    def Codepoints(self) -> List[Tuple[int, str]]:
+        """Codepoints.Retrieves the codepoints and symbols for the desired font,
+        handles differently if its smufl font.
+
+        Returns:
+            The final list of codepoints/description.
+        """
         if self.__smufl != None and checkExtension(self.__smufl, "json") == True:
             charcodes = self.__glyphnameParse()
             if len(charcodes) == 0:
