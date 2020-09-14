@@ -3,16 +3,16 @@ from fontTools import ttLib
 from datetime import datetime
 import os
 import json
-import helpers
-from config import FONTDIR, SUPPORTED_FONTS, COMMANDS_TEMPLATE, HEADER_TEMPLATE
-from config import LATEX_REQUIREMENTS, __author__
+from gensty.helpers import ReplaceToken, checkExtension, checkFont, fixString
+from gensty.config import FONTDIR, SUPPORTED_FONTS, COMMANDS_TEMPLATE, HEADER_TEMPLATE
+from gensty.config import LATEX_REQUIREMENTS, __author__
 
 
 class Info:
     def __init__(self, fontfile, smufl=None):
         self.errors = []
         self.fontfile = fontfile
-        if helpers.checkFont(fontfile,SUPPORTED_FONTS) == False:
+        if checkFont(fontfile,SUPPORTED_FONTS) == False:
             self.errors.append("Could not file font file, or not supported")
             pass
         self.fontfileBase = os.path.basename(fontfile)
@@ -70,7 +70,7 @@ class Info:
             return False
         result = []
         for charcode, codepoint in charcodes:
-            description = helpers.fixString(Unicode[charcode])
+            description = fixString(Unicode[charcode])
             if private == True and charcode >= 0xE000 and charcode <= 0xF8FF:
                 continue
             if description in excluded:
@@ -89,7 +89,7 @@ class Info:
     def Codepoints(self):
         """Retrieves the codepoints and symbols for the desired font, handles
         differently if its smufl font."""
-        if self.smufl != None and helpers.checkExtension(self.smufl, "json") == True:
+        if self.smufl != None and checkExtension(self.smufl, "json") == True:
             charcodes = self.__glyphnameParse()
             if len(charcodes) == 0:
                 self.errors.append("Empty glyphnames file.")
@@ -163,7 +163,7 @@ class LaTeXstyle(Info):
         genstyPath = os.path.abspath(os.path.dirname(__file__))
         with open(genstyPath+"/"+template) as templateFile:
             template = templateFile.read()
-            output = helpers.ReplaceToken(tokens, template)
+            output = ReplaceToken(tokens, template)
         return output
 
     def Header(self):
