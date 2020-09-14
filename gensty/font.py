@@ -1,26 +1,28 @@
+# -*- coding: utf-8 -*-
+import os
+import json
 from fontTools.unicode import Unicode
 from fontTools import ttLib
 from datetime import datetime
-import os
-import json
 from gensty.helpers import ReplaceToken, checkExtension, checkFont, fixString
 from gensty.config import FONTDIR, SUPPORTED_FONTS, COMMANDS_TEMPLATE, HEADER_TEMPLATE
 from gensty.config import LATEX_REQUIREMENTS, __author__
+from typing import Tuple, List
 
 
 class Info:
-    def __init__(self, fontfile, smufl=None):
-        self.errors = []
-        self.fontfile = fontfile
-        if checkFont(fontfile,SUPPORTED_FONTS) == False:
+    def __init__(self, fontfile: str, smufl: str = None) -> None:
+        self.errors: list = []
+        self.fontfile: str = fontfile
+        if checkFont(fontfile, SUPPORTED_FONTS) == False:
             self.errors.append("Could not file font file, or not supported")
             pass
-        self.fontfileBase = os.path.basename(fontfile)
-        self.smufl = smufl
-        self.name = self.__getName()
-        self.codepoints = self.Codepoints()
+        self.fontfileBase: str = os.path.basename(fontfile)
+        self.smufl: str = smufl
+        self.name: str = self.__getName()
+        self.codepoints: str = self.Codepoints()
 
-    def __getName(self):
+    def __getName(self) -> str:
         """Get the name from the font's names table.
         Customized function, original retrieved from: https://bit.ly/3lS4nMO
         """
@@ -39,7 +41,7 @@ class Info:
         name = name.decode('utf-8')
         return name.replace(" ", "").replace("-", "")
 
-    def __glyphnameParse(self):
+    def __glyphnameParse(self) -> list:
         """Parses glyphname file according w3c/smufl reference."""
         result = []
         with open(self.smufl) as json_file:
@@ -49,7 +51,7 @@ class Info:
                 result.append((int(codepoint, 16), gname))
         return result
 
-    def __fontCodepoints(self):
+    def __fontCodepoints(self) -> list:
         """Creates a dict of codepoints and names for every character/symbol in the
         given font."""
         font = ttLib.TTFont(self.fontfile)
@@ -63,7 +65,7 @@ class Info:
         sorted(charcodes)
         return charcodes
 
-    def __fontCharList(self, charcodes, private=False, excluded=[]):
+    def __fontCharList(self, charcodes: list, private: str = False, excluded: list = []) -> List[str, str]:
         """Accepts list of tuples with charcodes and codepoints and returns
         names and charcodes."""
         if not isinstance(charcodes, list):
@@ -78,7 +80,7 @@ class Info:
             result.append((charcode, description))
         return result
 
-    def Identifier(self, prefix=True):
+    def Identifier(self, prefix: str = True) -> str:
         """Removes spaces and forces lowercase for font name, by default adds prefix
         'fnt' so we can avoid issues with simmilar names in other LaTeX packages."""
         result = self.name.lower().replace(" ", "")
@@ -86,7 +88,7 @@ class Info:
             return "fnt"+result
         return result
 
-    def Codepoints(self):
+    def Codepoints(self) -> List[str, str]:
         """Retrieves the codepoints and symbols for the desired font, handles
         differently if its smufl font."""
         if self.smufl != None and checkExtension(self.smufl, "json") == True:
@@ -107,10 +109,10 @@ class Info:
 
 
 class LaTeXstyle(Info):
-    def __init__(self, version=None, author=None, **kwargs):
-        fontfile = kwargs.get('fontfile',None)
-        smufl = kwargs.get('smufl',None)
-        Info.__init__(self,fontfile,smufl)
+    def __init__(self, version: str = None, author: str = None, **kwargs) -> None:
+        fontfile = kwargs.get('fontfile', None)
+        smufl = kwargs.get('smufl', None)
+        Info.__init__(self, fontfile, smufl)
         if len(self.errors) > 0:
             print(self.errors)
             pass
@@ -127,18 +129,18 @@ class LaTeXstyle(Info):
         self.forcedName = None
         self.year = datetime.today().strftime('%Y')
 
-    def setPackage(self, packageName):
+    def setPackage(self, packageName: str) -> str:
         self.packageName = packageName
 
-    def setCommand(self, commandName):
+    def setCommand(self, commandName: str) -> str:
         self.forcedCommand = commandName
 
-    def __description(self):
+    def __description(self) -> str:
         """Creates default description text based on name and version."""
         currentDate = datetime.today().strftime('%Y-%m-%d')
         return "%s %s LaTeX package for %s" % (currentDate, self.version, self.name)
 
-    def __requirements(self, requirements=[]):
+    def __requirements(self, requirements: list = []) -> str:
         """Creates LaTeX package requirements. By default fontspec is nessessary."""
         reqstr = ""
         if not isinstance(requirements, list):
@@ -148,7 +150,7 @@ class LaTeXstyle(Info):
             reqstr += "\\RequirePackage{"+pkg+"}"
         return reqstr
 
-    def __defcommands(self):
+    def __defcommands(self) -> str:
         """Creates command name, definition and command."""
 
         if self.forcedName != None:
@@ -158,7 +160,7 @@ class LaTeXstyle(Info):
         defCmd = "Define"+self.name
         return (defCmd, self.name)
 
-    def __makeTemplate(self, template, tokens):
+    def __makeTemplate(self, template: str, tokens: str) -> str:
         """Parses and replace tokens in template string."""
         genstyPath = os.path.abspath(os.path.dirname(__file__))
         with open(genstyPath+"/"+template) as templateFile:
@@ -166,7 +168,7 @@ class LaTeXstyle(Info):
             output = ReplaceToken(tokens, template)
         return output
 
-    def Header(self):
+    def Header(self) -> str:
         """Fills header style partial."""
         if self.packageName == None:
             self.packageName = self.name
@@ -180,9 +182,9 @@ class LaTeXstyle(Info):
         }
         return self.__makeTemplate(HEADER_TEMPLATE, tokens)
 
-    def DefCommands(self):
+    def DefCommands(self) -> str:
         """Fills Commands definition style partial."""
-        defcommand,command = self.__defcommands()
+        defcommand, command = self.__defcommands()
         tokens = {
             'fontfile': self.fontfileBase,
             'fontspath': FONTDIR,
@@ -193,7 +195,7 @@ class LaTeXstyle(Info):
         }
         return self.__makeTemplate(COMMANDS_TEMPLATE, tokens)
 
-    def Commands(self):
+    def Commands(self) -> str:
         """Generates LaTeX commands for each char code."""
         if not isinstance(self.codepoints, list):
             return False
@@ -206,8 +208,8 @@ class LaTeXstyle(Info):
             return False
         return commands
 
-    def File(self):
-        header      = self.Header()
+    def File(self) -> str:
+        header = self.Header()
         definitions = self.DefCommands()
-        commands    = self.Commands()
+        commands = self.Commands()
         return header + definitions + commands
