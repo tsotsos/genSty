@@ -5,16 +5,22 @@
 
 Welcome to gensty's documentation!
 ==================================
-
 .. mdinclude:: ../README.md
 
 .. toctree::
-   :maxdepth: 4
-   :caption: Contents:
+    :caption: Readme
+    :maxdepth: 4
 
-   gensty_cli
+    self
+
+.. toctree::
+   :caption: Gensty Documentation
+   :maxdepth: 2
+
    gensty_font
    gensty_helpers
+   gensty_cli
+
 
 Indices and tables
 ==================
