@@ -162,19 +162,24 @@ class Info:
 
 
 class LaTeXstyle(Info):
-    """LaTeXstyle.
+    """LaTeXstyle. Creates LaTeX Style package in three parts:
+
+    - Header. Includes Package name and requirements.
+    - DefCommands: The definitions of commands.
+    - Commands: LaTeX commands based on provided codepoints.
+    - File: The full LaTeX Style package including all above.
     """
 
     def __init__(self, version: str = None, author: str = None, **kwargs) -> None:
-        """__init__.
+        """__init__. Constructor.
 
         Args:
-            version (str): version
-            author (str): author
-            kwargs:
+            version (str): LaTeX package version.
+            author (str): LaTeX package author.
+        kwargs: dict of arguments for intialization of :func:`~gensty.font.Info`
 
         Returns:
-            None:
+            Constructor.
         """
         fontfile = kwargs.get('fontfile', None)
         smufl = kwargs.get('smufl', None)
@@ -183,47 +188,53 @@ class LaTeXstyle(Info):
             print(self.errors)
             pass
         if version == None:
-            self.version = "v0.1"
+            self.__version = "v0.1"
         else:
-            self.version = version
+            self.__version = version
         if author == None:
-            self.author = __author__
+            self.__author = __author__
         else:
-            self.author = author
+            self.__author = author
         self.__fontfileBase = os.path.basename(self.fontfile)
-        self.packageName = None
-        self.forcedName = None
-        self.year = datetime.today().strftime('%Y')
+        self.__packageName = None
+        self.__forcedName = None
+        self.__year = datetime.today().strftime('%Y')
 
-    def setPackage(self, packageName: str) -> str:
-        """setPackage.
+    def setPackage(self, packageName: str):
+        """setPackage. Sets the package Name, overides default (font name).
 
         Args:
-            packageName (str): packageName
-
-        Returns:
-            str:
+            packageName (str): The package name
         """
-        self.packageName = packageName
+        self.__packageName = packageName
 
     def setCommand(self, commandName: str) -> str:
-        """setCommand.
+        """setCommand. Forces a command name different from default (font name)
 
         Args:
-            commandName (str): commandName
-
-        Returns:
-            str:
+            commandName (str): Command Name
         """
         self.forcedCommand = commandName
 
     def __description(self) -> str:
-        """Creates default description text based on name and version."""
+        """Creates default description text based on name and version.
+
+        Returns:
+            Description text for header.
+        """
         currentDate = datetime.today().strftime('%Y-%m-%d')
-        return "%s %s LaTeX package for %s" % (currentDate, self.version, self.name)
+        return "%s %s LaTeX package for %s" % (currentDate, self.__version, self.name)
 
     def __requirements(self, requirements: list = []) -> str:
-        """Creates LaTeX package requirements. By default fontspec is nessessary."""
+        """__requirements. Creates LaTeX package requirements. By default
+        fontspec is nessessary.
+
+        Args:
+            requirements (list): List of requirements.
+
+        Returns:
+            LaTeX package requirements.
+        """
         reqstr = ""
         if not isinstance(requirements, list):
             return reqstr
@@ -232,18 +243,29 @@ class LaTeXstyle(Info):
             reqstr += "\\RequirePackage{"+pkg+"}"
         return reqstr
 
-    def __defcommands(self) -> str:
-        """Creates command name, definition and command."""
+    def __defcommands(self) -> Tuple[str, str]:
+        """__defcommands. Creates command name, definition and command.
 
-        if self.forcedName != None:
-            defCmd = "Define"+self.forcedName
-            return (defCmd, self.forcedName)
+        Returns:
+            Definition of commands.
+        """
+        if self.__forcedName != None:
+            defCmd = "Define"+self.__forcedName
+            return (defCmd, self.__forcedName)
 
         defCmd = "Define"+self.name
         return (defCmd, self.name)
 
-    def __makeTemplate(self, template: str, tokens: str) -> str:
-        """Parses and replace tokens in template string."""
+    def __makeTemplate(self, template: str, tokens: dict) -> str:
+        """__makeTemplate. Parses and replace tokens in template string.
+
+        Args:
+            template (str): Template file
+            tokens (dict): Tokens dict.
+
+        Returns:
+            String based on provided template.
+        """
         genstyPath = os.path.abspath(os.path.dirname(__file__))
         with open(genstyPath+"/"+template) as templateFile:
             template = templateFile.read()
@@ -251,21 +273,29 @@ class LaTeXstyle(Info):
         return output
 
     def Header(self) -> str:
-        """Fills header style partial."""
-        if self.packageName == None:
-            self.packageName = self.name
+        """Header. Fills header style partial template
+
+        Returns:
+            LaTeX Style package header partial.
+        """
+        if self.__packageName == None:
+            self.__packageName = self.name
 
         tokens = {
-            'packageName': self.packageName,
+            'packageName': self.__packageName,
             'description': self.__description(),
-            'year': self.year,
-            'author': self.author,
+            'year': self.__year,
+            'author': self.__author,
             'requirements': self.__requirements(LATEX_REQUIREMENTS)
         }
         return self.__makeTemplate(HEADER_TEMPLATE, tokens)
 
     def DefCommands(self) -> str:
-        """Fills Commands definition style partial."""
+        """DefCommands. Fills Commands definition style partial.
+
+        Returns:
+            LaTeX Package commands definition.
+        """
         defcommand, command = self.__defcommands()
         tokens = {
             'fontfile': self.__fontfileBase,
@@ -278,7 +308,11 @@ class LaTeXstyle(Info):
         return self.__makeTemplate(COMMANDS_TEMPLATE, tokens)
 
     def Commands(self) -> str:
-        """Generates LaTeX commands for each char code."""
+        """Commands. Generates LaTeX commands for each char code.
+
+        Returns:
+            Commands based on symbols from font.
+        """
         if not isinstance(self.codepoints, list):
             return False
         commands = "\n"
@@ -291,12 +325,10 @@ class LaTeXstyle(Info):
         return commands
 
     def File(self) -> str:
-        """File.
-
-        Args:
+        """File. Creates a full LaTeX Style package.
 
         Returns:
-            str:
+            LaTeX Style package.
         """
         header = self.Header()
         definitions = self.DefCommands()
