@@ -1,4 +1,5 @@
-"""Gensty module - Latex package generator ttf/otf and SMuFL."""
+"""Gensty main file for CLI manipulation.
+Latex package generator ttf/otf and SMuFL."""
 import os
 import sys
 import shutil
@@ -8,20 +9,17 @@ from gensty.helpers import getFontsByType
 from gensty.config import __version__, FONTDIR, SUPPORTED_FONTS
 from gensty.font import LaTeXstyle
 from datetime import datetime
-
-from pprint import pprint
+from typing import Tuple, List
 
 
 def __saveSinglePackage(fontname: str, fontpath: str, content: str):
     """__saveSinglePackage. Creates a single package folder and its files and
     save thes to disk.
 
-    :param fontname:
-    :type fontname: str
-    :param fontpath:
-    :type fontpath: str
-    :param content:
-    :type content: str
+    Args:
+        fontname (str): The font name.
+        fontpath (str): The path to font file.
+        content (str): LaTeX Style content.
     """
     createDir(fontname)
     packageFontsPath = fontname + "/" + FONTDIR
@@ -30,19 +28,18 @@ def __saveSinglePackage(fontname: str, fontpath: str, content: str):
     writePackage(fontname+"/"+fontname, content)
 
 
-def prepareFonts(path: str, ver: str, author: str, smufl: str) -> list:
+def prepareFonts(path: str, ver: str = None, author: str = None,
+                 smufl: str = None) -> List[LaTeXstyle]:
     """prepareFonts. Creates font.latexStyle instances in a list.
 
-    :param path:
-    :type path: str, optional
-    :param ver:
-    :type ver: str, optional
-    :param author:
-    :type author: str, optional
-    :param smufl:
-    :type smufl: str, optional
-    :return: A list of :func:`~gensty.font.LaTeXstyle`
-    :rtype: list
+    Args:
+        path (str): Either font(s) path directory or path to font file.
+        ver (str, optional): LaTeX package version.
+        author (str, optional): Latex package author.
+        smufl (str, optional): SMuFL glyphnames.json definition.
+    Returns:
+        A list of :func:`~gensty.font.LaTeXstyle` instances containing all data
+        needed final package generation.
     """
     fonts = []
 
@@ -59,8 +56,20 @@ def prepareFonts(path: str, ver: str, author: str, smufl: str) -> list:
     return fonts
 
 
-def makePackage(fonts: str, packageName: str = None, forcedCommand: str = None):
-    """Creates two lists, one for font files and another for latex files."""
+def makePackage(fonts: str, packageName: str = None, forcedCommand: str = None) -> Tuple[List[str], List[str], List[str]]:
+    """makePackage.
+
+    Args:
+        fonts (str): Font(s) path, either a file path or directory.
+        packageName (str, optional): Forced package name which overrides the
+        font name in folders and paths.
+        forcedCommand (str, optional): Overrides the name of generated
+        LaTeX command.
+
+    Returns:
+        Three lists (triplet) of string containing Fontnames, Filenames and
+        actual LaTeX style files.
+    """
     if not isinstance(fonts, list) or len(fonts) == 0:
         raise Exception("Error. Please provide list of LaTeXstyle instances!")
 
@@ -93,15 +102,21 @@ def makePackage(fonts: str, packageName: str = None, forcedCommand: str = None):
     return names, fontfiles, files
 
 
-def savePackage(names, fontfiles, files, packageName):
-    """Saves packages to disk, creating the appropriate folder structure.
-    cases explained:
-        1. Named package, single font
-        2. Named package, multiple fonts
-        3. single font, same package name
-        4. multiple fonts, same package names
-    """
+def savePackage(names: list, fontfiles: list, files: list, packageName:str = None):
+    """savePackage. Saves packages to disk, creating the appropriate folder
+    structure. There are four cases:
 
+    - Single font. Simplest form creates one package.
+    - Multiple font. Creates one package per font (incl. font file)
+    - Single font, named package. Overrides the default font name on folders.
+    - Multiple font, named package. Saves all fonts in same dir.
+
+    Args:
+        names (list): A list of  `str`
+        fontfiles (list): fontfiles
+        files (list): files
+        packageName (str): packageName
+    """
     if packageName != None and packageName != "":
         createDir(packageName)
         fontpath = packageName + "/" + FONTDIR
@@ -119,7 +134,7 @@ def savePackage(names, fontfiles, files, packageName):
 
 
 def cli():
-    """cli."""
+    """cli. Handles console arguments."""
     parser = argparse.ArgumentParser(
         prog='genSty', description="LaTeX Style file generator for fonts")
     parser.add_argument('--version', '-v', action='version',
