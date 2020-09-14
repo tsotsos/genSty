@@ -11,14 +11,34 @@ from typing import Tuple, List
 
 
 class Info:
+    """Info. Handles opentype fonts (otf, ttf) and creates codepoint/symbol
+    (unicode) List of Tuples based either on sMuFL glyphnames.json file or the
+    font itself as parsed by fontTools. Additionally the Class retrieves the
+    font name.
+
+    Attributes:
+        fontfile (str): The font file (otf,ttf).
+        name (str): The font name as retrieved from font file.
+        codepoints (List[Tuple[str,str]]): Codepoints and Symbol.
+        errors (List[str]): List of error messages.
+    """
+
     def __init__(self, fontfile: str, smufl: str = None) -> None:
+        """__init__. Constructor.
+
+        Args:
+            fontfile (str): The font file.
+            smufl (str,optional): sMuFL glyphnames.json file.
+
+        Returns:
+            None: Constructor.
+        """
         self.errors: list = []
         self.fontfile: str = fontfile
         if checkFont(fontfile, SUPPORTED_FONTS) == False:
             self.errors.append("Could not file font file, or not supported")
             pass
-        self.fontfileBase: str = os.path.basename(fontfile)
-        self.smufl: str = smufl
+        self.__smufl: str = smufl
         self.name: str = self.__getName()
         self.codepoints: str = self.Codepoints()
 
@@ -44,7 +64,7 @@ class Info:
     def __glyphnameParse(self) -> list:
         """Parses glyphname file according w3c/smufl reference."""
         result = []
-        with open(self.smufl) as json_file:
+        with open(self.__smufl) as json_file:
             gnames = json.load(json_file)
             for gname in gnames:
                 codepoint = gnames[gname]["codepoint"].replace("U+", "")
@@ -65,7 +85,7 @@ class Info:
         sorted(charcodes)
         return charcodes
 
-    def __fontCharList(self, charcodes: list, private: str = False, excluded: list = []) -> List[str, str]:
+    def __fontCharList(self, charcodes: list, private: str = False, excluded: list = []) -> List[Tuple[str, str]]:
         """Accepts list of tuples with charcodes and codepoints and returns
         names and charcodes."""
         if not isinstance(charcodes, list):
@@ -88,10 +108,10 @@ class Info:
             return "fnt"+result
         return result
 
-    def Codepoints(self) -> List[str, str]:
+    def Codepoints(self) -> List[Tuple[str, str]]:
         """Retrieves the codepoints and symbols for the desired font, handles
         differently if its smufl font."""
-        if self.smufl != None and checkExtension(self.smufl, "json") == True:
+        if self.__smufl != None and checkExtension(self.__smufl, "json") == True:
             charcodes = self.__glyphnameParse()
             if len(charcodes) == 0:
                 self.errors.append("Empty glyphnames file.")
@@ -109,7 +129,20 @@ class Info:
 
 
 class LaTeXstyle(Info):
+    """LaTeXstyle.
+    """
+
     def __init__(self, version: str = None, author: str = None, **kwargs) -> None:
+        """__init__.
+
+        Args:
+            version (str): version
+            author (str): author
+            kwargs:
+
+        Returns:
+            None:
+        """
         fontfile = kwargs.get('fontfile', None)
         smufl = kwargs.get('smufl', None)
         Info.__init__(self, fontfile, smufl)
@@ -124,15 +157,31 @@ class LaTeXstyle(Info):
             self.author = __author__
         else:
             self.author = author
-
+        self.__fontfileBase = os.path.basename(self.fontfile)
         self.packageName = None
         self.forcedName = None
         self.year = datetime.today().strftime('%Y')
 
     def setPackage(self, packageName: str) -> str:
+        """setPackage.
+
+        Args:
+            packageName (str): packageName
+
+        Returns:
+            str:
+        """
         self.packageName = packageName
 
     def setCommand(self, commandName: str) -> str:
+        """setCommand.
+
+        Args:
+            commandName (str): commandName
+
+        Returns:
+            str:
+        """
         self.forcedCommand = commandName
 
     def __description(self) -> str:
@@ -186,7 +235,7 @@ class LaTeXstyle(Info):
         """Fills Commands definition style partial."""
         defcommand, command = self.__defcommands()
         tokens = {
-            'fontfile': self.fontfileBase,
+            'fontfile': self.__fontfileBase,
             'fontspath': FONTDIR,
             'fontfamily': self.Identifier(),
             'fntidentifier': self.Identifier(),
@@ -209,6 +258,13 @@ class LaTeXstyle(Info):
         return commands
 
     def File(self) -> str:
+        """File.
+
+        Args:
+
+        Returns:
+            str:
+        """
         header = self.Header()
         definitions = self.DefCommands()
         commands = self.Commands()
