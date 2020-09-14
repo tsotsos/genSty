@@ -12,6 +12,7 @@
 #
 import os
 import sys
+import guzzle_sphinx_theme
 sys.path.insert(0, os.path.abspath('../'))
 from gensty.config import __version__
 
@@ -32,13 +33,15 @@ release = __version__
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx_rtd_theme',
     'sphinx_autodoc_typehints',
+    'sphinx.ext.napoleon',
+    'sphinx_rtd_theme',
     'm2r2'
 ]
 
 source_suffix = ['.rst', '.md']
 autodoc_typehints = 'description'
+set_type_checking_flag = True
 #extensions.append('autoapi.extension')
 #autoapi_type = 'python'
 #autoapi_dirs = ['../gensty']
@@ -58,8 +61,17 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
+html_theme_options = {
+    #'analytics_id': 'UA-XXXXXXX-1',  #  Provided by Google in your dashboard
+    #'logo_only': False,
+    'display_version': True,
+    'prev_next_buttons_location': 'bottom',
+    # Toc options
+    'collapse_navigation': False,
+    'sticky_navigation': True,
+    'navigation_depth': 6,
+    'includehidden': True,
+    'titles_only': False
+}
 
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
