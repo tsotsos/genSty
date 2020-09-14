@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Gensty main file for CLI manipulation.
 Latex package generator ttf/otf and SMuFL."""
 import os
