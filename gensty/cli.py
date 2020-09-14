@@ -3,20 +3,21 @@ import os
 import sys
 import shutil
 import argparse
-import helpers
-import config
-import font
+from gensty.helpers import checkExtension, createDir, writePackage, checkFont
+from gensty.helpers import getFontsByType
+from gensty.config  import __version__, FONTDIR, SUPPORTED_FONTS
+from gensty.font    import LaTeXstyle
 from datetime import datetime
 
 from pprint import pprint
 
 def __saveSinglePackage(fontname, fontpath, content):
     """Creates a single package folder and its files."""
-    helpers.createDir(fontname)
-    packageFontsPath = fontname +"/"+ config.FONTDIR
-    helpers.createDir(packageFontsPath)
+    createDir(fontname)
+    packageFontsPath = fontname +"/"+ FONTDIR
+    createDir(packageFontsPath)
     shutil.copy2(fontpath, packageFontsPath)
-    helpers.writePackage(fontname+"/"+fontname, content)
+    writePackage(fontname+"/"+fontname, content)
 
 
 def prepareFonts(path, ver, author, smufl):
@@ -24,12 +25,12 @@ def prepareFonts(path, ver, author, smufl):
     fonts = []
 
     if os.path.isdir(path) == True:
-        fontfiles = helpers.getFontsByType(path, config.SUPPORTED_FONTS)
+        fontfiles = getFontsByType(path, SUPPORTED_FONTS)
         for ffile in fontfiles:
-            fonts.append(font.LaTeXstyle(
+            fonts.append(LaTeXstyle(
                 version=ver, author=author, fontfile=ffile, smufl=smufl))
-    elif helpers.checkFont(path,config.SUPPORTED_FONTS) == True:
-        fonts.append(font.LaTeXstyle(
+    elif checkFont(path,SUPPORTED_FONTS) == True:
+        fonts.append(LaTeXstyle(
             version=ver, author=author, fontfile=path, smufl=smufl))
     else:
         raise Exception("Unhandled operation!")
@@ -77,25 +78,25 @@ def savePackage(names, fontfiles, files, packageName):
     """
 
     if packageName != None and packageName != "":
-        helpers.createDir(packageName)
-        fontpath = packageName +"/"+ config.FONTDIR
-        helpers.createDir(fontpath)
+        createDir(packageName)
+        fontpath = packageName +"/"+ FONTDIR
+        createDir(fontpath)
         if len(fontfiles) > 0 and len(files) > 0:
             for idx, font in enumerate(fontfiles):
                 shutil.copy2(font, fontpath)
                 if idx in range(-len(files),len(files)):
-                    helpers.writePackage(packageName+"/"+packageName,files[idx])
+                    writePackage(packageName+"/"+packageName,files[idx])
         else:
             raise Exception("Unknown Error!")
     else:
         for idx, pkg in enumerate(files):
             __saveSinglePackage(names[idx],fontfiles[idx],pkg)
 
-def main():
+def cli():
     parser = argparse.ArgumentParser(
         prog='genSty', description="LaTeX Style file generator for fonts")
     parser.add_argument('--version', '-v', action='version',
-                        version='%(prog)s ' + config.__version__)
+                        version='%(prog)s ' + __version__)
     parser.add_argument('path',
                         help='Font(s) path. It can be either a directory in case of multiple fonts or file path.')
     parser.add_argument('--all', '-a', action="store_true",
@@ -118,12 +119,12 @@ def main():
         raise Exception(
             "Error! flag --all must be defined along with directory only!")
 
-    if helpers.checkFont(args.path, config.SUPPORTED_FONTS) == False and os.path.isdir(args.path) == False:
+    if checkFont(args.path, SUPPORTED_FONTS) == False and os.path.isdir(args.path) == False:
         raise Exception(
             "Error! path should be a valid font file (%s) or directory."
-            % ','.join(config.SUPPORTED_FONTS))
+            % ','.join(SUPPORTED_FONTS))
 
-    if args.smufl != None and helpers.checkExtension(args.smufl, "json") == False:
+    if args.smufl != None and checkExtension(args.smufl, "json") == False:
         raise Exception("Error! Please provide a valid smufl json file")
 
     # prepare fonts.
@@ -132,6 +133,3 @@ def main():
     # creates font package with folder stracture etc.
     savePackage(fontnames, fontfiles, files ,packageName=args.one_package)
 
-
-if __name__ == "__main__":
-    main()
