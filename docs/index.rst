@@ -6,11 +6,15 @@
 Welcome to gensty's documentation!
 ==================================
 
-.. automodule:: gensty
-    :members:
+.. mdinclude:: ../README.md
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
+   :caption: Contents:
+
+   gensty_cli
+   gensty_font
+   gensty_helpers
 
 Indices and tables
 ==================
