@@ -5,23 +5,45 @@ import shutil
 import argparse
 from gensty.helpers import checkExtension, createDir, writePackage, checkFont
 from gensty.helpers import getFontsByType
-from gensty.config  import __version__, FONTDIR, SUPPORTED_FONTS
-from gensty.font    import LaTeXstyle
+from gensty.config import __version__, FONTDIR, SUPPORTED_FONTS
+from gensty.font import LaTeXstyle
 from datetime import datetime
 
 from pprint import pprint
 
-def __saveSinglePackage(fontname, fontpath, content):
-    """Creates a single package folder and its files."""
+
+def __saveSinglePackage(fontname: str, fontpath: str, content: str):
+    """__saveSinglePackage. Creates a single package folder and its files and
+    save thes to disk.
+
+    :param fontname:
+    :type fontname: str
+    :param fontpath:
+    :type fontpath: str
+    :param content:
+    :type content: str
+    """
     createDir(fontname)
-    packageFontsPath = fontname +"/"+ FONTDIR
+    packageFontsPath = fontname + "/" + FONTDIR
     createDir(packageFontsPath)
     shutil.copy2(fontpath, packageFontsPath)
     writePackage(fontname+"/"+fontname, content)
 
 
-def prepareFonts(path, ver, author, smufl):
-    """ Creates latexStyle instances in a list and returns it"""
+def prepareFonts(path: str, ver: str, author: str, smufl: str) -> list:
+    """prepareFonts. Creates font.latexStyle instances in a list.
+
+    :param path:
+    :type path: str, optional
+    :param ver:
+    :type ver: str, optional
+    :param author:
+    :type author: str, optional
+    :param smufl:
+    :type smufl: str, optional
+    :return: A list of :func:`~gensty.font.LaTeXstyle`
+    :rtype: list
+    """
     fonts = []
 
     if os.path.isdir(path) == True:
@@ -29,20 +51,22 @@ def prepareFonts(path, ver, author, smufl):
         for ffile in fontfiles:
             fonts.append(LaTeXstyle(
                 version=ver, author=author, fontfile=ffile, smufl=smufl))
-    elif checkFont(path,SUPPORTED_FONTS) == True:
+    elif checkFont(path, SUPPORTED_FONTS) == True:
         fonts.append(LaTeXstyle(
             version=ver, author=author, fontfile=path, smufl=smufl))
     else:
         raise Exception("Unhandled operation!")
     return fonts
 
-def makePackage(fonts, packageName=None, forcedCommand=None):
+
+def makePackage(fonts: str, packageName: str = None, forcedCommand: str = None):
     """Creates two lists, one for font files and another for latex files."""
-    if not isinstance(fonts,list) or len(fonts) == 0 :
+    if not isinstance(fonts, list) or len(fonts) == 0:
         raise Exception("Error. Please provide list of LaTeXstyle instances!")
-    files     = []
+
+    files = []
     fontfiles = []
-    names     = []
+    names = []
     if packageName != None and packageName != "":
         header = ""
         defcommands = ""
@@ -50,23 +74,24 @@ def makePackage(fonts, packageName=None, forcedCommand=None):
         for pkg in fonts:
             pkg.setPackage(packageName)
             pkg.setCommand(forcedCommand)
-            header      = pkg.Header()
+            header = pkg.Header()
             defcommands += pkg.DefCommands()
-            commands    += pkg.Commands()
+            commands += pkg.Commands()
             fontfiles.append(pkg.fontfile)
             names.append(pkg.name)
         files.append(header + defcommands + commands)
     else:
         for pkg in fonts:
             pkg.setCommand(forcedCommand)
-            header      = pkg.Header()
+            header = pkg.Header()
             defcommands = pkg.DefCommands()
-            commands    = pkg.Commands()
+            commands = pkg.Commands()
             files.append(header + defcommands + commands)
             fontfiles.append(pkg.fontfile)
             names.append(pkg.name)
 
-    return names,fontfiles,files
+    return names, fontfiles, files
+
 
 def savePackage(names, fontfiles, files, packageName):
     """Saves packages to disk, creating the appropriate folder structure.
@@ -79,20 +104,22 @@ def savePackage(names, fontfiles, files, packageName):
 
     if packageName != None and packageName != "":
         createDir(packageName)
-        fontpath = packageName +"/"+ FONTDIR
+        fontpath = packageName + "/" + FONTDIR
         createDir(fontpath)
         if len(fontfiles) > 0 and len(files) > 0:
             for idx, font in enumerate(fontfiles):
                 shutil.copy2(font, fontpath)
-                if idx in range(-len(files),len(files)):
-                    writePackage(packageName+"/"+packageName,files[idx])
+                if idx in range(-len(files), len(files)):
+                    writePackage(packageName+"/"+packageName, files[idx])
         else:
             raise Exception("Unknown Error!")
     else:
         for idx, pkg in enumerate(files):
-            __saveSinglePackage(names[idx],fontfiles[idx],pkg)
+            __saveSinglePackage(names[idx], fontfiles[idx], pkg)
+
 
 def cli():
+    """cli."""
     parser = argparse.ArgumentParser(
         prog='genSty', description="LaTeX Style file generator for fonts")
     parser.add_argument('--version', '-v', action='version',
@@ -129,7 +156,7 @@ def cli():
 
     # prepare fonts.
     fonts = prepareFonts(args.path, args.ver, args.author, args.smufl)
-    fontnames, fontfiles,files = makePackage(fonts, args.one_package, args.force_name)
+    fontnames, fontfiles, files = makePackage(
+        fonts, args.one_package, args.force_name)
     # creates font package with folder stracture etc.
-    savePackage(fontnames, fontfiles, files ,packageName=args.one_package)
-
+    savePackage(fontnames, fontfiles, files, packageName=args.one_package)
