@@ -1,8 +1,5 @@
-Gensty Cli
+Cli
 ==============
-
-Module contents
----------------
 
 .. automodule:: gensty.cli
     :members:

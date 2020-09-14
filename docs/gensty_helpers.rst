@@ -1,8 +1,5 @@
-Gensty Helpers
+Helpers
 ==============
-
-Module contents
----------------
 
 .. automodule:: gensty.helpers
     :members:

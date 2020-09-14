@@ -5,13 +5,23 @@
 
 Welcome to gensty's documentation!
 ==================================
-.. mdinclude:: ../README.md
+
+GenSty is a LaTex style package generator for OpenType fonts (otf/ttf) which 
+supports W3C SMuFL notation. With gensty you can generate your LaTeX package 
+based on any OpenType font; the generator parses ttf/otf files and creates
+LaTeX commands for all Unicode Symbols. 
+In the case of SMuFL fonts, you can also include the glyphnames.json file, 
+so it will create friendlier names and include “Private Use” symbols.
+
+`SMuFL specifications <https://www.w3.org/2019/03/smufl13/>`_
+
 
 .. toctree::
-    :caption: Readme
-    :maxdepth: 4
+   :caption: Table of Contents
+   :name: mastertoc
+   :maxdepth: 4
 
-    self
+   Readme<README>
 
 .. toctree::
    :caption: Gensty Documentation
@@ -20,7 +30,6 @@ Welcome to gensty's documentation!
    gensty_font
    gensty_helpers
    gensty_cli
-
 
 Indices and tables
 ==================
