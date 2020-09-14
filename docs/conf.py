@@ -36,10 +36,15 @@ extensions = [
     'sphinx_autodoc_typehints',
     'sphinx.ext.napoleon',
     'sphinx_rtd_theme',
-    'm2r2'
+    'sphinx.ext.viewcode',
+    'm2r2',
 ]
-
-source_suffix = ['.rst', '.md']
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.txt': 'markdown',
+    '.md': 'markdown',
+}
+enable_auto_toc_tree= True
 autodoc_typehints = 'description'
 set_type_checking_flag = True
 #extensions.append('autoapi.extension')
