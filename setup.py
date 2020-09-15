@@ -20,7 +20,6 @@ setup(
     author=__author__,
     author_email=__email__,
     python_requires='>=3',
-    url='https://github.com/tsotsos/gensty',
     packages=[
         'gensty',
     ],
@@ -33,6 +32,10 @@ setup(
     license='GPL-2.0 License',
     zip_safe=False,
     keywords='latex generator package fonts',
+    project_urls={
+        "Documentation":"https://gensty.readthedocs.io/",
+        "Source": "https://github.com/tsotsos/gensty",
+    },
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
