@@ -1,0 +1,4 @@
+sphinx-autodoc-typehints >= 1.11.0
+sphinxcontrib-napoleon >= 0.7
+sphinx-rtd-theme >= 0.5
+m2r2 >= 0.2.5
