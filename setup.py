@@ -6,9 +6,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-from gensty import __version__
-from gensty import __author__
-from gensty import __email__
+from gensty.config import __version__, __author__, __email__
 
 with open('README.md', encoding='utf-8') as readme_file:
     readme = readme_file.read()
@@ -29,7 +27,7 @@ setup(
     package_dir={'gensty': 'gensty'},
     include_package_data=True,
     entry_points = {
-        'console_scripts': ['gensty=gensty.gensty:main'],
+        'console_scripts': ['gensty=gensty:cli'],
     },
     install_requires=['fontTools'],
     license='GPL-2.0 License',
