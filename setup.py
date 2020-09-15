@@ -15,8 +15,8 @@ setup(
     name='gensty',
     version=__version__,
     description='LaTex style generator for ttf/otf fonts. Supports Smufl.',
-    long_description= readme,
     long_description_content_type='text/markdown',
+    long_description= readme,
     author=__author__,
     author_email=__email__,
     python_requires='>=3',
@@ -26,7 +26,7 @@ setup(
     package_dir={'gensty': 'gensty'},
     include_package_data=True,
     entry_points = {
-        'console_scripts': ['gensty=gensty:cli'],
+        'console_scripts': ['gensty=gensty.cli:cli'],
     },
     install_requires=['fontTools'],
     license='GPL-2.0 License',
