@@ -26,10 +26,10 @@ Clone the repository
 git clone git@github.com:tsotsos/genSty.git
 ```
 
-and then use via gensty/gensty folder. Eg.
+and then use from the top folder. Eg.
 
-```bash
-python3 /the/path/of/gensty/gensty.py
+```console
+python3 -m gensty -h
 ```
 
 ## Usage
@@ -38,6 +38,8 @@ As referred above, the package can be used directly, installed from pip, and as
 a module. In case of command line the script can be used :
 
 ```console
+gensty -h
+
 usage: genSty [-h] [--version] [--all] [--smufl SMUFL]
               [--one-package ONE_PACKAGE] [--author AUTHOR] [--ver VER]
               path
