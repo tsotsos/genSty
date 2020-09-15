@@ -24,7 +24,6 @@ author = 'Georgios Tsotsos'
 # The full version, including alpha/beta/rc tags
 release = __version__
 
-
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
@@ -46,9 +45,6 @@ source_suffix = {
 enable_auto_toc_tree= True
 autodoc_typehints = 'description'
 set_type_checking_flag = True
-#extensions.append('autoapi.extension')
-#autoapi_type = 'python'
-#autoapi_dirs = ['../gensty']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
