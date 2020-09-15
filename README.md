@@ -67,20 +67,40 @@ optional arguments:
 
 ### Use as a module
 
+Use the module to create LaTeXstyle instances and handle generated latex code 
+yourself.
+
 ```python
 import gensty
 
-# To create all style packages from a folder or fontfile (path). use
-# makePackage().
-# Optional arguments: version, author and smufl.
-# smufl is path to glyphnames.json which is defined according to Specifications
-# https://www.w3.org/2019/03/smufl13/specification/glyphnames.html
+# Generate LaTeXstyle instance from font file:
 
-fontpaths, files = gensty.makePackage(path, version, author, smufl)
+latexObj = font.LaTeXstyle(author,version, "path/to/font.otf",smufl)
 
-# if you want to save style packages in a folder use:
-gensty.savePackage(fontpaths,files)
+# then you can get for latexObj,Header(), DefCommands(), Commands() or File()
+```
 
+Use them module to create the LaTeX package in filesystem.
+
+```python
+import gensty
+
+# Use the same functions as gensty CLI and handle both folder or font file
+# input (path can be either font file or folder including fonts).
+# Then using savePackage you can save the generated output to disk
+# accorndingly.
+# smufl is the path to glyphnames.json which is defined according to W3C
+# Specifications https://www.w3.org/2019/03/smufl13/specification/glyphnames.html
+
+# prepare fonts. author, version and smuf, can be None.
+fonts = prepareFonts(path, version, author, smufl)
+
+# packageName and forcedCommand can be None. They are used to force LaTeX
+# pacakage name and commands respectively.
+fontnames, fontfiles, files = makePackage(fonts, packageName, forcedCommand)
+
+# creates font package in file system.
+savePackage(fontnames, fontfiles, files, packageName)
 ```
 
 ## Contributing
